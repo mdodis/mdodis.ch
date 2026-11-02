@@ -7,6 +7,7 @@
     <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
     <script src="timeline.js" defer></script>
+    <script src="carousel.js" defer></script>
 </head>
 <body style="background-color: #222222;">
 
@@ -135,17 +136,54 @@
     <div class="section-header" id="software">SOFTWARE</div>
     <div style="display: flex; justify-content: center;">
         <div class="section" aria-label="Information">
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
+
+            <!-- Project template: copy this block for each project -->
+            <div class="project">
+                <div class="project-info">
+                    <h3 class="project-title">Open Solomon's Key</h3>
+                    <p class="project-desc">
+                        Open Solomon's Key is an open-source remake of the 1986 arcade game by Tecmo. It tries to be truthful to the original game (as much as anyone can without the original source code), while adding some extra elements, like a fully customizable level format.
+                    </p>
+                    <div class="project-links">
+                        <a href="#" target="_blank" rel="noopener">Source</a>
+                        <a href="#" target="_blank" rel="noopener">Download</a>
+                    </div>
+                </div>
+                <div class="carousel">
+                    <div class="carousel-track">
+                        <img src="res/osk.png" alt="Project screenshot 1">
+                        <img src="res/osk1.jpg" alt="Project screenshot 2">
+                        <img src="res/osk2.jpg" alt="Project screenshot 3">
+                    </div>
+                    <button class="carousel-btn carousel-prev" aria-label="Previous image">&#8249;</button>
+                    <button class="carousel-btn carousel-next" aria-label="Next image">&#8250;</button>
+                </div>
+            </div>
+
+            <div class="project">
+                <div class="project-info">
+                    <h3 class="project-title">Alien Door Control</h3>
+                    <p class="project-desc">
+                        OLC Gamejam entry. Made in a custom 3D engine with OpenGL for Windows, and Linux.
+                        In this "reverse-sokoban" game, the player is responsible for placing blocks in order to guide
+                        the alien towards the exit. Each block incurs different behaviors in the alien.
+                    </p>
+                    <div class="project-links">
+                        <a href="#" target="_blank" rel="noopener">Source</a>
+                        <a href="#" target="_blank" rel="noopener">Download</a>
+                    </div>
+                </div>
+                <div class="carousel">
+                    <div class="carousel-track">
+                        <img src="res/adc.png" alt="Project screenshot 1">
+                        <img src="res/osk1.jpg" alt="Project screenshot 2">
+                        <img src="res/osk2.jpg" alt="Project screenshot 3">
+                    </div>
+                    <button class="carousel-btn carousel-prev" aria-label="Previous image">&#8249;</button>
+                    <button class="carousel-btn carousel-next" aria-label="Next image">&#8250;</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
