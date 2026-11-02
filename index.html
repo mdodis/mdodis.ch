@@ -6,6 +6,7 @@
     <title>mdodis.ch</title>
     <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
+    <script src="timeline.js" defer></script>
 </head>
 <body style="background-color: #222222;">
 
@@ -22,8 +23,9 @@
             </div>
             <div id="menu">
                 <a class="menu-item" href="#about">About</a>
+                <a class="menu-item" href="#career-history">Career History</a>
                 <a class="menu-item" href="#software">Software</a>
-                <a class="menu-item">Contact</a>
+                <a class="menu-item" href="#contact">Contact</a>
             </div>
         </div>
         <div style="display: flex; justify-content: start;">
@@ -47,13 +49,92 @@
             <p> Hello</p>
             <p> Hello</p>
         </div>
-        <div class="timeline"></div>
+    </div>
+
+    <!-- Career History -->
+    <div class="section-header" id="career-history">Career History</div>
+    <div class="section-row">
+        <div class="section" aria-label="Information">
+            <div data-time="tCur">
+                <ul>
+                    <li>Optimizations & Extensions to XPBD Physics Engine</li>
+                    <li>Core SDK contributor</li>
+                </ul>
+            </div>
+            <div data-time="t2024">
+                <ul>
+                    <li>Management of SDK team, release schedule & milestones</li>
+                    <li>CI/CD pipelines in Github Actions</li>
+                </ul>
+            </div>
+
+            <div data-time="t2023">
+                <ul>
+                    <li>Completed Bachelor</li>
+                    <ul>
+                        <li>Exit grade: 8.97/10.00</li>
+                    </ul>
+                    <li>Graph based visual scripting tool with UI Toolkit</li>
+                    <li>State capture extensible replay system</li>
+                </ul>
+            </div>
+
+            <div data-time="t2022">
+                <p>
+                    <ul>
+                        <li>Unity Engine (C#)</li>
+                        <li>VR Streaming Solution</li>
+                        <ul>
+                            <li>C++</li>
+                            <li>DirectX Render Target Capture</li>
+                            <li>WebRTC</li>
+                        </ul>
+                        <li>Technical Lead in B2B & Commercial medical training simulations</li>
+                    </ul>
+                </p>
+            </div>
+
+            <div data-time="t2021">
+                <ul>
+                    <li>Full-time Employment w/ indefinite contract</li>
+                    <li>Unreal Engine 4 (C++)</li>
+                    <ul>
+                        <li>Blueprint editor for a storyboarding system</li>
+                        <li>Multiplayer networking implementation</li>
+                        <li>VR Simulator for Desktop PC</li>
+                    </ul>
+                </ul>
+            </div>
+
+            <div data-time="t2019">
+                <ul>
+                    <li>Contributed optimizations for an NLP parser</li>
+                    <li>Worked on internal Intel Optane Persistent Memory Kernel Module for Linux</li>
+                </ul>
+            </div>
+
+            <div data-time="t2017">
+                <ul>
+                    <li>Started Bachelor at <a href="https://www.uoc.gr/en/home/">University of Crete</a></li>
+                </ul>
+            </div>
+        </div>
+        <ol class="timeline">
+            <li data-time="tCur"><span class="timeline-date">TODAY</span>Head of SDK - ORamaVR SA</li>
+            <li data-time="t2024"><span class="timeline-date">2024</span>Head of SDK - ORamaVR SA</li>
+            <li data-time="t2023"><span class="timeline-date">2023</span>Computer Science Bsc. - University of Crete</li>
+            <li data-time="t2022"><span class="timeline-date">2022</span>Core SDK Developer - ORamaVR SA</li>
+            <li data-time="t2021"><span class="timeline-date">2021</span>SDK Developer - ORamaVR SA</li>
+            <li data-time="t2019"><span class="timeline-date">2019</span>Undergraduate Research - ICS FORTH</li>
+            <li data-time="t2017"><span class="timeline-date">2017</span>Undergraduate</li>
+        </ol>
+
     </div>
 
     <!-- Software -->
-    <div class="section-header">SOFTWARE</div>
+    <div class="section-header" id="software">SOFTWARE</div>
     <div style="display: flex; justify-content: center;">
-        <div id="software" class="section" aria-label="Information">
+        <div class="section" aria-label="Information">
             <p> Hello</p>
             <p> Hello</p>
             <p> Hello</p>
@@ -65,6 +146,25 @@
             <p> Hello</p>
             <p> Hello</p>
             <p> Hello</p>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="section-header" id="contact">CONTACT</div>
+    <div style="display: flex; justify-content: center;">
+        <div class="section" aria-label="Information">
+            <form class="contact-form" action="#" method="POST">
+                <label for="contact-name">Name</label>
+                <input id="contact-name" name="name" type="text" required>
+
+                <label for="contact-email">Email</label>
+                <input id="contact-email" name="email" type="email" required>
+
+                <label for="contact-message">Message</label>
+                <textarea id="contact-message" name="message" rows="6" required></textarea>
+
+                <button type="submit">Send</button>
+            </form>
         </div>
     </div>
 </body>

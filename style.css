@@ -91,7 +91,6 @@
     display: flex;
     flex-direction: column;
     width: 50vw;
-    border: 1px solid red;
 }
 
 .section-header {
@@ -109,8 +108,94 @@
     color: white;
 }
 
+/* Row holding a .section; lets side widgets sit outside the flow */
+.section-row {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+/* Timeline: absolutely positioned to the right of the centered 50vw section */
 .timeline {
-    border-right: 4px solid whitesmoke;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(50% + 25vw + 24px);
+    width: calc(25vw - 48px);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-left: 2px solid whitesmoke;
+    color: whitesmoke;
+}
+
+/* top/height are set by timeline.js to match the linked section element */
+.timeline li {
+    position: absolute;
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
+    padding-left: 16px;
+}
+
+.timeline li::before {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: 3px;
+    width: 16px;
+    height: 6px;
+    background-color: whitesmoke;
+}
+
+.timeline-date {
+    display: block;
+    font-weight: bold;
+    color: var(--bg-light);
+    margin-bottom: 4px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 0;
+}
+
+.contact-form input,
+.contact-form textarea {
+    font: inherit;
+    color: whitesmoke;
+    background-color: #333333;
+    border: 1px solid var(--bg-light);
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: whitesmoke;
+}
+
+.contact-form textarea {
+    resize: vertical;
+}
+
+.contact-form button {
+    align-self: flex-start;
+    font: inherit;
+    color: var(--bg-dark);
+    background-color: whitesmoke;
+    border: none;
+    padding: 8px 24px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.contact-form button:hover {
+    background-color: red;
+    color: whitesmoke;
 }
 
 /* Small phones */
