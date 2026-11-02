@@ -9,7 +9,7 @@
     <script src="timeline.js" defer></script>
     <script src="carousel.js" defer></script>
 </head>
-<body style="background-color: #222222;">
+<body>
 
     <!-- Greet -->
     <div id="first-top"></div>
@@ -35,26 +35,167 @@
     </div>
 
     <!-- About -->
-    <div class="section-header" id="about">ABOUT</div>
-    <div style="display: flex; justify-content: center;">
+    <div class="section-header" id="about">About</div>
+    <div class="cont" style="display: flex; justify-content: center;">
         <div class="section" aria-label="Information">
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
-            <p> Hello</p>
+            <h2>
+                Grüezi!
+            </h2>
+            <hr style="border: none; height: 2px; background-color: whitesmoke; width: 100%;">
+            <p>
+                My name is Michael Dodis, and I'm a Software Engineer with 7 YOE. I started programming when I was
+                around 14 years old, and I am still just as (if not more) fascinated with computers since back then.
+            </p>
+
+            <p>
+                I was born and raised in a small rural town in Greece, and after 5 years doing my Computer Science Bsc,
+                I moved to Switzerland. I currently live in Dübendorf in the Zürich canton.
+            </p>
+
+            <h2>
+                Education
+            </h2>
+
+            <hr style="border: none; height: 2px; background-color: whitesmoke; width: 100%;">
+
+            <p>
+                In 2017, I started my bachelor for Computer Science in the University of Crete. I was particularly
+                interested in Computer Graphics and low-level programming; of course I picked up lots of different
+                tidbits of knowledge, but I mainly train and specialize in:
+
+            </p>
+            <ul>
+                <li>Low Level Programming Languages</li>
+                <ul>
+                    <li>C (my favorite)</li>
+                    <li>C++</li>
+                    <li>Objective-C</li>
+                </ul>
+                <br>
+                <li>Graphics APIs</li>
+                <ul>
+                    <li>Direct3D</li>
+                    <li>Vulkan</li>
+                    <li>OpenGL</li>
+                </ul>
+            </ul>
+
+            <p>
+                Due to my work experience, I can now claim competency with:
+            </p>
+            <ul>
+                <li>Unity Engine (Optimization, Job System, Editor Tools)</li>
+                <li>Unreal Engine (C++ Scripting, Editor Tools)</li>
+                <li>C# (Unity Engine)</li>
+                <li>Python 3 (CI/CD, Automation)</li>
+                <li>Javascript, Typescript, AngularJS</li>
+            </ul>
+
+            <p>
+                I am proficient in the following languages:
+            </p>
+            <ul>
+                <li>Greek (Native)</li>
+                <li>English (Campbridge C2)</li>
+            </ul>
+            <p>
+                And I am currently learning High German (since October 2025).
+            </p>
+
+            <br>
+
+            <p>
+                Besides Computer Graphics, I also like to study and experiment with the following in my spare time:
+            </p>
+            <ul>
+                <li>Old Operating Systems & CPUs</li>
+                <li>Emulation</li>
+                <li>Audio Programming</li>
+                <li>Low Level UI Programming</li>
+                <li>Homelab/Self Hosting</li>
+            </ul>
+
+            <h2>
+                Hobbies
+            </h2>
+            <hr style="border: none; height: 2px; background-color: whitesmoke; width: 100%;">
+            <p>
+                Besides programming in one's spare time, I think it's important to have varying outlets! Here are mine:
+            </p>
+            <ul>
+                <li>Electric Guitar</li>
+                <li>Cooking</li>
+                <li>Exercise</li>
+                <li>Reading</li>
+                <li>Gaming</li>
+            </ul>
+
+            <h2>
+                Programs I Use
+            </h2>
+            <hr style="border: none; height: 2px; background-color: whitesmoke; width: 100%;">
+            <p>
+                I use these programs only in my personal projects. I try to be flexible when it comes to the tools
+                any company employees.
+            </p>
+            <ul>
+                <li>Sublime Text</li>
+                <ul>
+                    <li>Due to its speed in editing code</li>
+                </ul>
+                <li>Vim Emulation Keybindings</li>
+                <ul>
+                    <li>Not because of the speed of editing, but because it makes copy-paste and some other shortcuts consistent between Mac/Windows/Linux.</li>
+                </ul>
+                <li>RAD Debugger</li>
+                <ul>
+                    <li>Due to its speed in debugging code</li>
+                </ul>
+                <li>Voidtools Everything</li>
+                <ul>
+                    <li>Due to its speed in searching files</li>
+                </ul>
+            </ul>
+
+            <h2>
+                My Homelab
+            </h2>
+            <hr style="border: none; height: 2px; background-color: whitesmoke; width: 100%;">
+            <p>
+                Unfortunately (or fortunately, depending on who you ask), I don't happen to have a
+                huge amount of space available to store huge server racks. But I believe I've done
+                well with what I have available.
+            </p>
+
+            <img src="res/thinkcentre.png" style="width: 512px; align-self: center; object-fit: contain;" alt="Lenovo ThinkCentre M700">
+            <br>
+            <p>
+                I run Debian on a second hand Lenovo ThinkCentre M700 (mine also includes a CD/DVD bay). On it I've
+                connected a budget DAS housing second hand HDDs for long-term storage (I'm not really
+                concerned about RW speed, but mostly ease of use and practicality). I control it with some cheap wireless
+                usb-remote pad (for which I will not bother fishing for the exact model and make; they're all very similar).
+            </p>
+
+            <br>
+
+            <p>
+                When the server is on, I use a samba service which I configured on LAN, so that I don't have to
+                wire up cables to do transfers... And that's about it!
+            </p>
+
+            <p>
+                Oh by the way: I found out that you can put shortcuts in "%appdata%\Microsoft\Windows\Network Shortcuts",
+                and that will show up quite convenietly under "This PC" in the file explorer. So instead of trying to use
+                the network tab, you can have a shortcut to take you straight to the server files through SAMBA, or open an
+                SSH session without having to bother much. Neat!
+            </p>
+            
         </div>
     </div>
 
     <!-- Career History -->
     <div class="section-header" id="career-history">Career History</div>
-    <div class="section-row">
+    <div class="cont section-row">
         <div class="section" aria-label="Information">
             <div data-time="tCur">
                 <ul>
@@ -133,8 +274,8 @@
     </div>
 
     <!-- Software -->
-    <div class="section-header" id="software">SOFTWARE</div>
-    <div style="display: flex; justify-content: center;">
+    <div class="section-header" id="software">Software</div>
+    <div class="cont" style="display: flex; justify-content: center;">
         <div class="section" aria-label="Information">
 
             <div class="project">
@@ -170,8 +311,8 @@
                         Open Solomon's Key is an open-source remake of the 1986 arcade game by Tecmo. It tries to be truthful to the original game (as much as anyone can without the original source code), while adding some extra elements, like a fully customizable level format.
                     </p>
                     <div class="project-links">
-                        <a href="#" target="_blank" rel="noopener">Source</a>
-                        <a href="#" target="_blank" rel="noopener">Download</a>
+                        <a href="https://mdodis.itch.io/open-solomons-key" target="_blank" rel="noopener">Project Page</a>
+                        <a href="https://github.com/mdodis/OpenSolomonsKey" target="_blank" rel="noopener">Source</a>
                     </div>
                 </div>
                 <div class="carousel">
@@ -194,15 +335,13 @@
                         the alien towards the exit. Each block incurs different behaviors in the alien.
                     </p>
                     <div class="project-links">
-                        <a href="#" target="_blank" rel="noopener">Source</a>
-                        <a href="#" target="_blank" rel="noopener">Download</a>
+                        <a href="https://mdodis.itch.io/alien-door-control" target="_blank" rel="noopener">Project Page</a>
                     </div>
                 </div>
                 <div class="carousel">
                     <div class="carousel-track">
                         <img src="res/adc.png" alt="Project screenshot 1">
-                        <img src="res/osk1.jpg" alt="Project screenshot 2">
-                        <img src="res/osk2.jpg" alt="Project screenshot 3">
+                        <img src="res/adc1.png" alt="Project screenshot 2">
                     </div>
                     <button class="carousel-btn carousel-prev" aria-label="Previous image">&#8249;</button>
                     <button class="carousel-btn carousel-next" aria-label="Next image">&#8250;</button>
@@ -213,8 +352,8 @@
     </div>
 
     <!-- Contact -->
-    <div class="section-header" id="contact">CONTACT</div>
-    <div style="display: flex; justify-content: center;">
+    <div class="section-header" id="contact">Contact</div>
+    <div class="cont" style="display: flex; justify-content: center;">
         <div class="section" aria-label="Information">
             <form class="contact-form" action="#" method="POST">
                 <label for="contact-name">Name</label>

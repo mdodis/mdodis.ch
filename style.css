@@ -1,8 +1,12 @@
 :root {
     --bg-light: #8a8a8a;
-    --bg-dark: #222222;
+    --bg-dark: #303030;
 
     font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: var(--bg-dark);
 }
 
 #first-top {
@@ -18,6 +22,10 @@
     height: 60vh;
     background-color: var(--bg-dark);
     margin-bottom: 10vh;
+}
+
+.cont {
+    background-color: var(--bg-dark);
 }
 
 .flx-grow-1 {
@@ -79,6 +87,17 @@
     height: auto;
 }
 
+h2 {
+    margin-top: 2;
+    margin-bottom: 0;
+}
+
+p {
+    padding: 0 0 0 0 ;
+    margin: 1px 0 1px 0 ;
+    color: white;
+}
+
 #bar1 {
     /* height: 120px; */
     height: 10vh;
@@ -94,9 +113,12 @@
 }
 
 .section-header {
-    background-color: black;
-    color: whitesmoke;
+    background-color: rgb(104, 104, 104);
+
+    color:rgb(228, 225, 225);
     font-size: 1.5em;
+    font-weight: 700;
+    border: 2px solid rgb(177, 177, 177);
     text-align: center;
 
     left: 0;
