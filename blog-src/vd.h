@@ -2555,6 +2555,29 @@ void vd_semaphore_free(VdSemaphore semaphore)
     VdCloseHandle(semaphore.handle);
 }
 
+#elif VD_PLATFORM_LINUX || VD_PLATFORM_MACOS
+// Only thread local storage so far; threads and semaphores are still Windows only.
+#include <pthread.h>
+
+VD_API uint32_t vd_tls_alloc(void)
+{
+    pthread_key_t key;
+    int rc = pthread_key_create(&key, NULL);
+    VD_ASSERT(rc == 0);
+    (void)rc;
+    return (uint32_t)key;
+}
+
+VD_API void vd_tls_set(uint32_t id, void *p)
+{
+    pthread_setspecific((pthread_key_t)id, p);
+}
+
+VD_API void *vd_tls_get(uint32_t id)
+{
+    return pthread_getspecific((pthread_key_t)id);
+}
+
 #endif // VD_PLATFORM_WINDOWS
 /* ----SYSTEM ALLOCATOR IMPL----------------------------------------------------------------------------------------- */
 #define VD_SYSTEM_HEAP_RESERVE_PAGE_COUNT 32000
