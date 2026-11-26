@@ -5,7 +5,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 cd "$SCRIPT_DIR"
 
 mkdir -p build ../blog
-gcc -O1 -g -o build/docubuild2 -I . docubuild2.c
+gcc -O1 -g -o build/docubuild2 -I . docubuild2.c -ldl
 cp static/* ../blog/
 
 # Run from inside posts/: on Linux the directory walker stats entries relative to the working directory,

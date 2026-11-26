@@ -490,14 +490,23 @@ extern void _WriteBarrier();
 #endif // VD_CPP
 #endif // VD_PLATFORM_WINDOWS
 
+// Compiler-only barriers, like MSVC's _ReadBarrier/_WriteBarrier
 VD_INLINE void vd_read_barrier()
 {
+#if VD_PLATFORM_WINDOWS
     _ReadBarrier();
+#else
+    __asm__ __volatile__("" ::: "memory");
+#endif // VD_PLATFORM_WINDOWS
 }
 
 VD_INLINE void vd_write_barrier()
 {
+#if VD_PLATFORM_WINDOWS
     _WriteBarrier();
+#else
+    __asm__ __volatile__("" ::: "memory");
+#endif // VD_PLATFORM_WINDOWS
 }
 
 VD_INLINE int32_t vd_compare_and_swap_i32(volatile int32_t *ptr, int32_t new_value, int32_t old_value)
@@ -3638,6 +3647,7 @@ VD_API void vd_directory_walk_recursively(const char *path, void (*visit)(VdFile
 /* ----DYNAMIC LIBRARIES IMPL---------------------------------------------------------------------------------------- */
 #if VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
 
+#if VD_PLATFORM_WINDOWS
 #if VD_CPP
 extern "C" {
 #endif // VD_CPP
@@ -3653,7 +3663,6 @@ extern int VdFreeLibrary(void *hLibModule);
 }
 #endif // VD_CPP
 
-#if VD_PLATFORM_WINDOWS
 VD_API VdLibrary vd_library_from_path(const char *path)
 {
     void *h = VdLoadLibraryA(path);
@@ -3672,6 +3681,27 @@ VD_API void vd_library_free(VdLibrary library)
 {
     void *h = library.handle;
     VdFreeLibrary(h);
+}
+#elif VD_PLATFORM_LINUX || VD_PLATFORM_MACOS
+#include <dlfcn.h>
+
+VD_API VdLibrary vd_library_from_path(const char *path)
+{
+    VdLibrary result;
+    result.handle = dlopen(path, RTLD_NOW | RTLD_LOCAL);
+    return result;
+}
+
+VD_API void *vd_library_address(VdLibrary library, const char *name)
+{
+    return dlsym(library.handle, name);
+}
+
+VD_API void vd_library_free(VdLibrary library)
+{
+    if (library.handle) {
+        dlclose(library.handle);
+    }
 }
 #else
 #error "No Shared Library implementation for this platform!"
