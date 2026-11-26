@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+    Blog page template for docubuild2. blog.css and blog.js are copied from blog-src/static by the build script.
+    Pages without @category (index.docuspec) get the post list; posts set @category("post") and @date("YYYY-MM-DD").
+    Pages without @notoc get a table of contents, built by blog.js from the page's @section headings.
+-->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}} - mdodis</title>
+    <link rel="icon" href="../favicon.ico">
+    <link rel="stylesheet" href="blog.css">
+    <script src="blog.js" defer></script>
+</head>
+<body>
+    <nav class="top-bar">
+        <a class="brand" href="../index.html">Michael Dodis</a>
+        <a href="index.html">Blog</a>
+        <div class="search">
+            <input type="search" id="searchbox" placeholder="Search  ( / )" aria-label="Search the blog" autocomplete="off">
+            <ul id="search-results" hidden></ul>
+        </div>
+    </nav>
+
+    <div class="page">
+        <main>
+            <h1>{{title}}</h1>
+            {{#date}}
+            <time class="post-date" datetime="{{date}}">{{date}}</time>
+            {{/date}}
+            {{content}}
+
+            {{^category}}
+            <ul class="post-list">
+                {{#docs}}
+                <li>
+                    {{#doc_date}}
+                    <time class="post-date" datetime="{{doc_date}}">{{doc_date}}</time>
+                    {{/doc_date}}
+                    <a href="{{doc_name}}.html">{{doc_title}}</a>
+                </li>
+                {{/docs}}
+            </ul>
+            {{/category}}
+        </main>
+
+        {{#toc}}
+        <aside class="toc">
+            <div class="toc-title">On this page</div>
+            <nav id="toc" aria-label="Table of contents"></nav>
+        </aside>
+        {{/toc}}
+    </div>
+
+    <footer>
+        &copy; Michael Dodis. Built with docuspec.
+    </footer>
+</body>
+</html>

@@ -68,6 +68,29 @@ body {
     align-items: end;
 }
 
+.hero-text {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    margin-right: 12px;
+}
+
+.hero-name {
+    font-size: 2.2em;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.hero-portrait {
+    display: flex;
+    justify-content: start;
+}
+
+.hero-portrait img {
+    height: 100%;
+    object-fit: contain;
+}
+
 .menu-item {
     color: whitesmoke;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -130,6 +153,12 @@ p {
     color: white;
 }
 
+/* Inline widths (e.g. the 512px homelab picture) never overflow the column */
+.section img {
+    max-width: 100%;
+    height: auto;
+}
+
 /* Row holding a .section; lets side widgets sit outside the flow */
 .section-row {
     position: relative;
@@ -175,6 +204,24 @@ p {
     font-weight: bold;
     color: var(--bg-light);
     margin-bottom: 4px;
+}
+
+.social-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 32px;
+    padding: 16px 0 8px 0;
+}
+
+.social-links a {
+    color: whitesmoke;
+    font-size: 1.2em;
+    transition: color 0.3s ease;
+}
+
+.social-links a:hover {
+    color: red;
 }
 
 .contact-form {
@@ -311,6 +358,93 @@ p {
 
 .carousel-prev { left: 8px; }
 .carousel-next { right: 8px; }
+
+/* Phones and tablets in portrait (incl. iPad Pro 13"): the 25vw beside the column is too narrow for the timeline,
+   so it becomes a plain list above the details, lined up with the column */
+@media (max-width: 1099px) {
+    .section-row {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .timeline {
+        position: static;
+        order: -1;
+        width: 50vw;
+        margin: 16px 0 24px 0;
+    }
+
+    /* relative, not static: the ::before marker is positioned against it */
+    .timeline li {
+        position: relative;
+        padding: 0 0 12px 16px;
+    }
+}
+
+/* All phones (small + large) */
+@media (max-width: 767px) {
+    /* Content uses the screen width with a small margin instead of the centered 50vw column */
+    .section {
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 0 16px;
+    }
+
+    /* Hero: portrait on top, name and menu centered underneath */
+    #info {
+        top: 10vh;
+        bottom: auto;
+        left: 0;
+        right: 0;
+        width: auto;
+        height: auto;
+        flex-direction: column-reverse;
+        align-items: center;
+    }
+
+    .hero-portrait {
+        justify-content: center;
+    }
+
+    .hero-portrait img {
+        height: 40vh;
+        max-width: 80vw;
+    }
+
+    .hero-text {
+        align-items: center;
+        margin: 16px 0 0 0;
+    }
+
+    #bar1 {
+        display: none;
+    }
+
+    .hero-name {
+        font-size: 1.8em;
+        margin-bottom: 12px;
+    }
+
+    #menu {
+        align-items: center;
+    }
+
+    /* Timeline list (see above) spans the screen like the full-width column */
+    .section-row {
+        align-items: stretch;
+    }
+
+    .timeline {
+        width: auto;
+        margin: 16px 16px 24px 16px;
+    }
+
+    /* Projects: carousel under the description */
+    .project {
+        grid-template-columns: 1fr;
+    }
+}
 
 /* Small phones */
 @media (max-width: 480px) {

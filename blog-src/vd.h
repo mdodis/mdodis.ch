@@ -1,0 +1,3762 @@
+/**
+ * vd.h - A 'batteries-included' header file to use with C99
+ * 
+ * zlib License
+ * 
+ * (C) Copyright 2025-2026 Michael Dodis (michaeldodisgr@gmail.com)
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ * 
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ * 
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ */
+#ifndef VD_H
+#define VD_H
+#define VD_VERSION_MAJOR    0
+#define VD_VERSION_MINOR    0
+#define VD_VERSION_PATCH    3
+#define VD_VERSION          ((VD_VERSION_MAJOR << 16) | (VD_VERSION_MINOR << 8) | (VD_VERSION_PATCH))
+
+#include <stdint.h>
+#include <stddef.h>
+
+/* ----API----------------------------------------------------------------------------------------------------------- */
+#ifndef VD_STATIC
+#define VD_API extern
+#else
+#define VD_API static
+#endif // !VD_STATIC
+
+typedef struct VdInitInfo VdInitInfo;
+
+VD_API void vd_init(VdInitInfo *info);
+
+/* ----MACRO HELPERS------------------------------------------------------------------------------------------------- */
+#ifndef VD_MACRO_ABBREVIATIONS
+#define VD_MACRO_ABBREVIATIONS 0
+#endif // !VD_MACRO_ABBREVIATIONS
+
+#define _VD_STRING_JOIN2(x, y) x##y
+#define VD_STRING_JOIN2(x, y) _VD_STRING_JOIN2(x, y)
+
+#define _VD_STRINGIFY(x) #x
+#define VD_STRINGIFY(x) _VD_STRINGIFY(x)
+
+/**
+ * @brief Indicates this parameter is unused.
+ */
+#define VD_UNUSED(x) (void)(x)
+
+#define VD_OFFSET_OF(type, element) ((size_t) & (((type*)0)->element))
+
+#define VD_CONTAINER_OF(ptr, type, member) \
+    (type*)(((uint8_t*)ptr) - ((size_t)VD_OFFSET_OF(type, member)))
+
+/* ----HOST COMPILER------------------------------------------------------------------------------------------------- */
+#if defined(__GNUC__) || defined(__clang__)
+#define VD_HOST_COMPILER_CLANG 1
+#endif // defined(__GNUC__) || defined(__clang__)
+
+#if defined(_MSC_VER)
+#define VD_HOST_COMPILER_MSVC 1
+#endif // defined(_MSC_VER)
+
+#ifndef VD_HOST_COMPILER_CLANG
+#define VD_HOST_COMPILER_CLANG 0
+#endif // !VD_HOST_COMPILER_CLANG
+
+#ifndef VD_HOST_COMPILER_MSVC
+#define VD_HOST_COMPILER_MSVC 0
+#endif // !VD_HOST_COMPILER_MSVC
+
+#if !VD_HOST_COMPILER_CLANG && !VD_HOST_COMPILER_MSVC
+#define VD_HOST_COMPILER_UNKNOWN 1
+#endif // !VD_HOST_COMPILER_CLANG && !VD_HOST_COMPILER_MSVC
+
+#ifndef VD_HOST_COMPILER_UNKNOWN
+#define VD_HOST_COMPILER_UNKNOWN 0
+#endif // !VD_HOST_COMPILER_UNKNOWN
+
+#if defined(__cplusplus)
+#define VD_CPP 1
+#endif // defined(__cplusplus)
+
+#ifndef VD_CPP
+#define VD_CPP 0
+#endif // !VD_CPP
+
+#if VD_CPP
+#define VD_C 0
+#else
+#define VD_C 1
+#endif // VD_CPP
+
+/* ----PLATFORM------------------------------------------------------------------------------------------------------ */
+#if defined(_WIN32) || defined(_WIN64)
+#define VD_PLATFORM_WINDOWS 1
+#define VD_PLATFORM_KNOWN 1
+#endif // defined(_WIN32) || defined(_WIN64)
+
+#if defined(__linux__)
+#define VD_PLATFORM_LINUX 1
+#define VD_PLATFORM_KNOWN 1
+#endif // defined(__linux__)
+
+#if defined(__APPLE__)
+#define VD_PLATFORM_MACOS 1
+#define VD_PLATFORM_KNOWN 1
+#endif // defined(__APPLE__)
+
+#ifndef VD_PLATFORM_WINDOWS
+#define VD_PLATFORM_WINDOWS 0
+#endif // !VD_PLATFORM_WINDOWS
+
+#ifndef VD_PLATFORM_LINUX
+#define VD_PLATFORM_LINUX 0
+#endif // !VD_PLATFORM_LINUX
+
+#ifndef VD_PLATFORM_MACOS
+#define VD_PLATFORM_MACOS 0
+#endif // !VD_PLATFORM_MACOS
+
+#ifndef VD_PLATFORM_KNOWN
+#define VD_PLATFORM_KNOWN 0
+#endif // !VD_PLATFORM_KNOWN
+
+#ifndef VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+#define VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY 1
+#endif // !VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+
+/* ----TYPES--------------------------------------------------------------------------------------------------------- */
+#define VD_FALSE 0
+#define VD_TRUE  1
+
+/* ----BUILD CONFIGURATION------------------------------------------------------------------------------------------- */
+#ifndef VD_BUILD_DEBUG
+#define VD_BUILD_DEBUG 0
+#endif
+
+#if VD_BUILD_DEBUG
+#define VD_DEBUG 1
+#endif
+
+#ifndef VD_DEBUG
+#define VD_DEBUG 0
+#endif
+
+#if VD_DEBUG
+#define VD_SANITY_CHECKS 1
+#else
+#define VD_SANITY_CHECKS 0
+#endif
+
+#define VD_API extern
+
+/* ----KEYWORDS------------------------------------------------------------------------------------------------------ */
+#if VD_HOST_COMPILER_CLANG
+#define VD_INLINE __attribute__((always_inline)) inline
+#elif VD_HOST_COMPILER_MSVC
+#define VD_INLINE __forceinline
+#else
+#define VD_INLINE static inline
+#endif
+
+/**
+ * @brief Indicates this function should not be exposed as a symbol.
+ */
+#define VD_INTERNAL static
+
+/* ----LIMITS-------------------------------------------------------------------------------------------------------- */
+#define VD_U8_MAX    UINT8_MAX
+#define VD_U16_MAX   UINT16_MAX
+#define VD_U32_MAX   UINT32_MAX
+#define VD_U64_MAX   UINT64_MAX
+#define VD_I8_MAX    INT8_MAX
+#define VD_I16_MAX   INT16_MAX
+#define VD_I32_MAX   INT32_MAX
+#define VD_I64_MAX   INT64_MAX
+#define VD_SIZET_MAX SIZE_MAX
+
+/* ----COMMON FUNCTIONS---------------------------------------------------------------------------------------------- */
+#ifndef VD_USE_CRT
+#define VD_USE_CRT 0
+#endif // VD_USE_CRT
+
+#if VD_USE_CRT
+#include <assert.h>
+#include <string.h>
+
+#define VD_DEBUG_BREAK()    assert(0)
+#define VD_ASSERT(x)        assert(x)
+#define VD_MEMSET(p, v, s)  memset((p), (v), (s))
+#define VD_MEMCPY(d, s, c)  memcpy((d), (s), (c))
+#define VD_MEMCMP(l, r, c)  memcmp((l), (r), (c))
+#define VD_MEMMOVE(d, s, c) memmove((d), (s), (c))
+#else
+
+static VD_INLINE void *vd_memset(void *dest, int value, size_t num)
+{
+    for (size_t i = 0; i < num; ++i) ((uint8_t*)dest)[i] = (uint8_t)value;
+    return dest;
+}
+
+static VD_INLINE void *vd_memcpy(void *dest, const void *src, size_t num)
+{
+    for (size_t i = 0; i < num; ++i) ((uint8_t*)dest)[i] = ((uint8_t*)src)[i];
+    return dest;
+}
+
+static VD_INLINE int vd_memcmp(const void *lhs, const void *rhs, size_t num)
+{
+    size_t i = 0;
+    while (i < num) {
+        uint8_t lhs_c = ((uint8_t*)lhs)[i];
+        uint8_t rhs_c = ((uint8_t*)rhs)[i];
+        if (lhs_c < rhs_c) {
+            return -1;
+        } else if (lhs_c > rhs_c) {
+            return 1;
+        }
+
+        i++;
+    }
+
+    return 0;
+}
+
+static VD_INLINE void *vd_memmove(void *dest, void *src, size_t num) {
+    uint8_t* d = (uint8_t*)dest;
+    uint8_t* s = (uint8_t*)src;
+
+    if (d < s) {
+        for (size_t i = 0; i < num; ++i) {
+            d[i] = s[i];
+        }
+    } else if (s < d) {
+        for (size_t i = num; i > 0; --i) {
+            d[i - 1] = s[i - 1];
+        }
+    }
+
+    return d;
+}
+
+#define VD_DEBUG_BREAK()    (*((char*)0) = 1)
+#define VD_ASSERT(x)        do { if (!(x)) { VD_DEBUG_BREAK(); } } while(0)
+#define VD_MEMSET(p, v, s)  vd_memset((p), (v), (s))
+#define VD_MEMCPY(d, s, c)  vd_memcpy((d), (s), (c))
+#define VD_MEMCMP(l, r, c)  vd_memcmp((l), (r), (c))
+#define VD_MEMMOVE(d, s, c) vd_memmove((d), (s), (c))
+
+#endif // VD_USE_CRT
+
+#define VD_IMPOSSIBLE() VD_ASSERT(VD_FALSE)
+#define VD_TODO()       VD_ASSERT(VD_FALSE)
+/* ----SIZES--------------------------------------------------------------------------------------------------------- */
+#define KILOBYTES(x) (((size_t)(x)) * 1024)
+#define MEGABYTES(x) (KILOBYTES(x) * 1024)
+#define GIGABYTES(x) (MEGABYTES(x) * 1024)
+
+#define VD_ARRAY_COUNT(s) (sizeof(s) / sizeof(*s))
+
+VD_INLINE int  vd_is_power_of_two(size_t x);
+VD_INLINE uintptr_t vd_align_forward(uintptr_t ptr, size_t align);
+
+VD_INLINE int vd_is_power_of_two(size_t x) {
+    return (x & (x - 1)) == 0;
+}
+
+VD_INLINE uintptr_t vd_align_forward(uintptr_t ptr, size_t align) {
+    VD_ASSERT(vd_is_power_of_two(align));
+
+    uintptr_t p, a, modulo;
+
+    p = ptr;
+    a = (uintptr_t)align;
+    modulo = p & (a - 1);
+
+    if (modulo != 0) {
+        p += a - modulo;
+    }
+
+    return p;
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define ARRAY_COUNT(a)            VD_ARRAY_COUNT(a)
+#define is_power_of_two(x)        vd_is_power_of_two(x)
+#define align_forward(ptr, align) vd_align_forward(ptr, align)
+#endif
+
+/* ----UTILITY------------------------------------------------------------------------------------------------------- */
+static VD_INLINE int32_t vd_ipow32(int32_t base, uint8_t exp);
+static VD_INLINE int64_t vd_ipow64(int64_t base, uint8_t exp);
+
+static VD_INLINE int32_t vd_ipow32(int32_t base, uint8_t exp)
+{
+    static const uint8_t highest_bit_set[] = {
+        0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+    };
+
+    int32_t result = 1;
+    switch (highest_bit_set[exp]) {
+        case 255:
+            if (base == 1) return 1;
+            if (base == -1) return 1 - 2 * (exp & 1);
+            return 0;
+        case 5:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 4:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 3:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 2:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 1:
+            if (exp & 1) result *= base;
+        default:
+            return result;
+    }
+}
+
+static VD_INLINE int64_t vd_ipow64(int64_t base, uint8_t exp)
+{
+    static const uint8_t highest_bit_set[] = {
+        0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+        255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+    };
+
+    int64_t result = 1;
+
+    switch (highest_bit_set[exp]) {
+        case 255:
+            if (base == 1) return 1;
+            if (base == -1) return 1 - 2 * (exp & 1);
+            return 0;
+        case 6:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 5:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 4:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 3:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 2:
+            if (exp & 1) result *= base;
+            exp >>= 1;
+            base *= base;
+        case 1:
+            if (exp & 1) result *= base;
+        default:
+            return result;
+    }
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define ipow32(base, exp) vd_ipow32(base, exp)
+#define ipow64(base, exp) vd_ipow64(base, exp)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----TIMING-------------------------------------------------------------------------------------------------------- */
+#if VD_PLATFORM_LINUX
+#include <time.h>
+#endif // VD_PLATFORM_LINUX
+
+typedef struct __VD_HiTime {
+#if VD_PLATFORM_WINDOWS
+    uint64_t performance_counter;
+#elif VD_PLATFORM_MACOS
+    uint64_t time;
+#elif VD_PLATFORM_LINUX
+    struct timespec time;
+#endif // VD_PLATFORM_WINDOWS, else
+} VdHiTime;
+
+VdHiTime vd_hitime_get(void);
+VdHiTime vd_hitime_sub(VdHiTime a, VdHiTime b);
+uint64_t      vd_hitime_ns(VdHiTime time_spec);
+double      vd_hitime_fms64(VdHiTime time_spec);
+uint64_t      vd_hitime_ms(VdHiTime time_spec);
+static VD_INLINE float vd_hitime_s(VdHiTime time_spec) { return (float)(vd_hitime_ms(time_spec)) / 1000.f; }
+
+#if VD_MACRO_ABBREVIATIONS
+#define HiTime                    VdHiTime
+#define hitime_get()            vd_hitime_get()
+#define hitime_sub(a, b)        vd_hitime_sub(a, b)
+#define hitime_ns(time_spec)    vd_hitime_ns(time_spec)
+#define hitime_fms64(time_spec) vd_hitime_fms64(time_spec)
+#define hitime_ms(time_spec)    vd_hitime_ms(time_spec)
+#define hitime_s(time_spec)     vd_hitime_s(time_spec)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----VIRTUAL MEMORY------------------------------------------------------------------------------------------------ */
+#if VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+#ifndef VD_VM_CUSTOM
+#define VD_VM_CUSTOM 0
+#endif // !VD_VM_CUSTOM
+
+#if VD_PLATFORM_KNOWN
+size_t     vd_vm_get_page_size(void);
+void*       vd_vm_reserve(size_t len);
+void*       vd_vm_commit(void *addr, size_t len);
+void*       vd_vm_decommit(void *addr, size_t len);
+void        vd_vm_release(void *addr, size_t len);
+
+#if VD_MACRO_ABBREVIATIONS
+#define vm_get_page_size()     vd_vm_get_page_size()
+#define vm_reserve(len)        vd_vm_reserve(len);
+#define vm_commit(addr, len)   vd_vm_commit(addr, len);
+#define vm_decommit(addr, len) vd_vm_decommit(addr, len);
+#define vm_release(addr, len)  vd_vm_release(addr, len);
+#endif // VD_MACRO_ABBREVIATIONS
+#endif // VD_PLATFORM_KNOWN
+#endif // VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+
+/* ----THREADS------------------------------------------------------------------------------------------------------- */
+#if VD_PLATFORM_KNOWN
+typedef struct {
+    void *handle;
+    int  id;
+} VdThread;
+
+typedef struct {
+    void *handle;
+} VdSemaphore;
+
+#define VD_THREAD_PROC(name) uint32_t name(void *param)
+typedef VD_THREAD_PROC(VdThreadProc);
+
+VD_API uint32_t     vd_tls_alloc(void);
+VD_API void         vd_tls_set(uint32_t id, void *p);
+VD_API void*        vd_tls_get(uint32_t id);
+
+VD_API VdThread     vd_thread_make(VdThreadProc *proc, void *param);
+VD_API int          vd_thread_join(VdThread thread);
+VD_API void         vd_thread_sleep(uint32_t ms);
+VD_API void         vd_thread_yield(void);
+VD_API VdSemaphore  vd_semaphore_make(int initial_count, int max_count);
+VD_API void         vd_semaphore_inc(VdSemaphore semaphore);
+VD_API void         vd_semaphore_dec(VdSemaphore semaphore);
+VD_API void         vd_semaphore_free(VdSemaphore semaphore);
+
+#if VD_PLATFORM_WINDOWS
+#if VD_CPP
+extern "C" {
+#endif // VD_CPP
+
+extern long _InterlockedCompareExchange(long volatile *, long, long);
+extern long long _InterlockedCompareExchange64(long long volatile *, long long, long long);
+extern void* _InterlockedCompareExchangePointer(void* volatile *, void*, void*);
+extern long _InterlockedIncrement(long volatile *);
+extern long _InterlockedAdd(long volatile *, long);
+extern long _InterlockedExchange(long volatile *, long);
+extern void _ReadBarrier();
+extern void _WriteBarrier();
+
+#if VD_CPP
+}
+#endif // VD_CPP
+#endif // VD_PLATFORM_WINDOWS
+
+VD_INLINE void vd_read_barrier()
+{
+    _ReadBarrier();
+}
+
+VD_INLINE void vd_write_barrier()
+{
+    _WriteBarrier();
+}
+
+VD_INLINE int32_t vd_compare_and_swap_i32(volatile int32_t *ptr, int32_t new_value, int32_t old_value)
+{
+#if VD_PLATFORM_WINDOWS
+    return (int32_t)_InterlockedCompareExchange((long volatile *)ptr, (long)new_value, (long)old_value);
+#endif // VD_PLATFORM_WINDOWS
+}
+
+VD_INLINE uint32_t vd_compare_and_swap_u32(volatile uint32_t *ptr, uint32_t new_value, uint32_t old_value)
+{
+#if VD_PLATFORM_WINDOWS
+    return (uint32_t)_InterlockedCompareExchange((long volatile *)ptr, *(long*)&new_value, *(long*)&old_value);
+#endif // VD_PLATFORM_WINDOWS
+}
+
+VD_INLINE int64_t vd_compare_and_swap_i64(volatile int64_t *ptr, int64_t new_value, int64_t expected)
+{
+#if VD_PLATFORM_WINDOWS
+    return (int64_t)_InterlockedCompareExchange64(ptr, new_value, expected);
+#endif // VD_PLATFORM_WINDOWS
+}
+
+VD_INLINE void *vd_compare_and_swap_ptr(void *volatile *ptr, void *new_value, void *expected)
+{
+#if VD_PLATFORM_WINDOWS
+    return _InterlockedCompareExchangePointer(ptr, new_value, expected);
+#endif // VD_PLATFORM_WINDOWS
+}
+
+VD_INLINE int32_t vd_swap_u32(volatile uint32_t *ptr, uint32_t new_value)
+{
+#if VD_PLATFORM_WINDOWS
+    return _InterlockedExchange((volatile long*)ptr, new_value);
+#endif // VD_PLATFORM_WINDOWS
+}
+
+VD_INLINE int32_t vd_inc_and_fetch_i32(volatile int32_t *addend)
+{
+#if VD_PLATFORM_WINDOWS
+    return _InterlockedIncrement((volatile long *)addend);
+#endif // VD_PLATFORM_WINDOWS
+}
+
+VD_INLINE uint32_t vd_inc_and_fetch_u32(volatile uint32_t *addend)
+{
+#if VD_PLATFORM_WINDOWS
+    return _InterlockedIncrement((volatile long *)addend);
+#endif // VD_PLATFORM_WINDOWS
+}
+
+VD_INLINE int32_t vd_add_and_fetch_i32(volatile int32_t *addend, int32_t value)
+{
+#if VD_PLATFORM_WINDOWS
+    return _InterlockedAdd((volatile long *)addend, value);
+#endif // VD_PLATFORM_WINDOWS
+}
+
+#endif // VD_PLATFORM_KNOWN
+/* ----SYSTEM ALLOCATOR---------------------------------------------------------------------------------------------- */
+typedef struct {
+    uintptr_t  buf;
+    size_t offset;
+    size_t page_size;
+    size_t reserved;
+    size_t committed;
+} VdSystemHeap;
+
+VD_API VdSystemHeap* vd_system_heap_global(void);
+VD_API void          vd_system_heap_set_reserve_page_count(VdSystemHeap *h, size_t page_count);
+VD_API void*         vd_system_heap_alloc(VdSystemHeap *h, size_t size, size_t align);
+VD_API void          vd_system_heap_empty(VdSystemHeap *h);
+
+typedef struct HeapArenaEntry HeapArenaEntry;
+struct HeapArenaEntry {
+    HeapArenaEntry  *next;
+    VdSystemHeap    heap;
+};
+
+typedef struct {
+    HeapArenaEntry *first;
+    HeapArenaEntry *last;
+    size_t         page_count;
+} HeapArena;
+
+typedef struct {
+    HeapArenaEntry *last;
+    size_t         offset;
+} HeapArenaSave;
+
+VD_API HeapArena heap_arena_make(size_t reserve_size);
+VD_API void *heap_arena_alloc(HeapArena *arena, size_t size);
+
+VD_API HeapArenaSave heap_arena_save(HeapArena *arena);
+VD_API void          heap_arena_restore(HeapArena *arena, HeapArenaSave save);
+
+#ifndef VD_ALLOC_OVERRIDE
+#define VD_ALLOC_OVERRIDE 0
+#endif // VD_ALLOC_OVERRIDE
+
+static VD_INLINE void *vd_realloc(void *ptr, size_t old_size, size_t new_size)
+{
+    VdSystemHeap *h = vd_system_heap_global();
+    void *result = vd_system_heap_alloc(h, new_size, 2 * sizeof(void*));
+
+    if (ptr) {
+        VD_MEMCPY(result, ptr, old_size);
+    }
+
+    return result;
+}
+
+static VD_INLINE void *vd_free(void *ptr, size_t old_size)
+{
+    VD_UNUSED(ptr);
+    VD_UNUSED(old_size);
+
+    return 0;
+}
+
+#if !VD_ALLOC_OVERRIDE
+#if VD_USE_CRT
+#include <stdlib.h>
+#define VD_REALLOC(ptr, old_size, new_size) realloc(ptr, new_size)
+#define VD_FREE(ptr, old_size)              free(ptr)
+#else
+#define VD_REALLOC(ptr, old_size, new_size) vd_realloc(ptr, old_size, new_size)
+#define VD_FREE(ptr, old_size)              vd_free(ptr, new_size)
+#endif // VD_USE_CRT
+#endif // !VD_ALLOC_OVERRIDE
+
+#define VD_MALLOC(size) VD_REALLOC(0, 0, (size))
+
+/* ----ALLOCATOR----------------------------------------------------------------------------------------------------- */
+#ifndef VD_ALLOC_DEFAULT_ALIGNMENT 
+#define VD_ALLOC_DEFAULT_ALIGNMENT (2 * sizeof(void*))
+#endif // VD_ALLOC_DEFAULT_ALIGNMENT 
+
+/* ----ARENA--------------------------------------------------------------------------------------------------------- */
+#ifndef VD_ARENA_DEFAULT_ALIGNMENT
+#define VD_ARENA_DEFAULT_ALIGNMENT VD_ALLOC_DEFAULT_ALIGNMENT
+#endif // VD_ARENA_DEFAULT_ALIGNMENT
+
+#ifndef VD_ARENA_ZERO_ON_CLEAR
+#define VD_ARENA_ZERO_ON_CLEAR 1
+#endif // VD_ARENA_ZERO_ON_CLEAR 
+
+enum {
+    VD_ARENA_FLAGS_USE_MALLOC = 1 << 7,
+};
+
+typedef uint8_t VdArenaFlags;
+
+typedef struct VdArena {
+    uint8_t         *buf;
+    size_t      buf_len;
+    size_t      prev_offset;
+    size_t      curr_offset;
+    VdArenaFlags flags;
+    uint8_t         reserved[7];
+} VdArena;
+
+typedef struct __VD_ArenaSave {
+    /** The saved arena. */
+    VdArena   *arena;
+    /** The previous offset in the arena. */
+    size_t    prev_offset;
+    /** The current offset in the arena. */
+    size_t    curr_offset;
+} VdArenaSave;
+
+void                        vd_arena_init(VdArena *a, void *buf, size_t len);
+void*                       vd_arena_alloc_align(VdArena *a, size_t size, size_t align);
+void*                       vd_arena_resize_align(VdArena *a, void *old_memory, size_t old_size, size_t new_size, size_t align);
+void                        vd_arena_clear(VdArena *a);
+int                       vd_arena_free(VdArena *a, void *memory, size_t size);
+VD_INLINE VdArenaSave       vd_arena_save(VdArena *a)                                                       { VdArenaSave result = { a, a->prev_offset, a->curr_offset }; return result; }
+VD_INLINE void              vd_arena_restore(VdArenaSave save)                                              { save.arena->prev_offset = save.prev_offset; save.arena->curr_offset = save.curr_offset; }
+VD_INLINE void*             vd_arena_alloc(VdArena *a, size_t size)                                         { return vd_arena_alloc_align(a, size, VD_ARENA_DEFAULT_ALIGNMENT);}
+VD_INLINE void*             vd_arena_resize(VdArena *a, void *old_memory, size_t old_size, size_t new_size) { return vd_arena_resize_align(a, old_memory, old_size, new_size, VD_ARENA_DEFAULT_ALIGNMENT); }
+VD_INLINE VdArena           vd_arena_from_malloc(size_t size)                                               { VdArena result; vd_arena_init(&result, VD_MALLOC(size), size); return result; }
+
+#define VD_ARENA_PUSH_ARRAY(a, x, count) (x*)vd_arena_alloc(a, sizeof(x) * count)
+#define VD_ARENA_PUSH_STRUCT(a, x)       VD_ARENA_PUSH_ARRAY(a, x, 1)
+#define VD_ARENA_FROM_SYSTEM(a, size)    (vd_arena_init(a, VD_MALLOC(size), size))
+
+#if VD_MACRO_ABBREVIATIONS
+#define ArenaSave                                                    VdArenaSave
+#define Arena                                                        VdArena
+#define ARENA_FLAGS_USE_MALLOC                                       VD_ARENA_FLAGS_USE_MALLOC
+#define arena_init(a, buf, len)                                      vd_arena_init(a, buf, len)
+#define arena_alloc_align(a, size, align)                            vd_arena_alloc_align(a, size, align)
+#define arena_resize_align(a, old_memory, old_size, new_size, align) vd_arena_resize_align(a, old_memory, old_size, new_size, align)
+#define arena_clear(a)                                               vd_arena_clear(a)
+#define arena_free(a, memory, size)                                  vd_arena_free(a, memory, size)
+#define arena_save(a)                                                vd_arena_save(a)
+#define arena_restore(save)                                          vd_arena_restore(save)
+#define arena_alloc(a, size)                                         vd_arena_alloc(a, size)
+#define arena_resize(a, old_memory, old_size, new_size)              vd_arena_resize(a, old_memory, old_size, new_size)
+#define ARENA_PUSH_ARRAY(a, x, count) VD_ARENA_PUSH_ARRAY(a, x, count)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----SIMPLE ARRAYS------------------------------------------------------------------------------------------------- */
+VD_INLINE void *vd__array_concat(VdArena *a, void *a1, size_t na1, void *a2, size_t na2, size_t isize)
+{
+    size_t alloc_size = isize * (na1 + na2);
+    void *result = vd_arena_alloc(a, alloc_size);
+    VD_MEMCPY(result, a1, isize * na1);
+    VD_MEMCPY((uint8_t*)result + (isize * na1), a2, isize * na2);
+    return result;
+}
+
+#define VD_ARRAY_CONCAT(a, a1, na1, a2, na2) vd__array_concat((a), (a1), (na1), (void*)(a2), (na2), sizeof(*a1))
+
+/* ----DLIST--------------------------------------------------------------------------------------------------------- */
+typedef struct VdDListNode VdDListNode;
+
+struct VdDListNode {
+    VdDListNode *next;
+    VdDListNode *prev;
+};
+
+typedef struct __VD_DList {
+    VdDListNode sentinel;
+} VdDList;
+
+VD_INLINE void            vd_dlist_init(VdDList *list);
+VD_INLINE void            vd_dlist_append(VdDList *list, VdDListNode *node);
+VD_INLINE size_t         vd_dlist_count(VdDList *list);
+VD_INLINE void            vd_dlist_rm(VdDList *list, VdDListNode *node);
+VD_INLINE VdDListNode*    vd_dlist_rm_first(VdDList *list);
+VD_INLINE VdDListNode*    vd_dlist_rm_last(VdDList *list);
+VD_INLINE void            vd_dlist_node_link(VdDListNode *node, VdDListNode *prev, VdDListNode *next);
+VD_INLINE void            vd_dlist_node_unlink(VdDListNode *node);
+
+VD_INLINE void           vd_dlist_append(VdDList *list, VdDListNode *node)            { vd_dlist_node_link(node, list->sentinel.prev, &list->sentinel); }
+VD_INLINE void           vd_dlist_node_init(VdDListNode *node)                          { node->next = node; node->prev = node; }
+VD_INLINE int          vd_dlist_node_is_empty(VdDListNode *node)                      { return (node->next == node) && (node->prev == node); }
+VD_INLINE int          vd_dlist_is_empty(VdDList *list)                               { return vd_dlist_node_is_empty(&list->sentinel); }
+VD_INLINE VdDListNode*   vd_dlist_first(VdDList *list)                                  { return vd_dlist_is_empty(list) ? 0 : list->sentinel.next; }
+VD_INLINE VdDListNode*   vd_dlist_last(VdDList *list)                                   { return vd_dlist_is_empty(list) ? 0 : list->sentinel.prev; }
+VD_INLINE void           vd_dlist_node_append(VdDListNode *node, VdDListNode *target) { vd_dlist_node_link(node, target, target->next); }
+
+#define VD_DLIST_FOR_EACH(listp, nodename)                       for (VdDListNode *nodename = &(listp)->sentinel; (nodename = nodename->next) != &(listp)->sentinel;)
+#define VD_DLIST_FOR_EACH_WITH_INDEX(listp, nodename, indexname) size_t indexname = 0; for (VdDListNode *nodename = &(listp)->sentinel; (nodename = nodename->next) != &(listp)->sentinel; indexname++)
+
+VD_INLINE void vd_dlist_init(VdDList *list)
+{
+    vd_dlist_node_init(&list->sentinel);
+}
+
+VD_INLINE void vd_dlist_rm(VdDList *list, VdDListNode *node)
+{
+    VD_ASSERT(node != &list->sentinel);
+    vd_dlist_node_unlink(node);
+}
+
+VD_INLINE VdDListNode *vd_dlist_rm_first(VdDList *list)
+{
+    if (vd_dlist_is_empty(list)) return 0;
+
+    VdDListNode *result = vd_dlist_first(list);
+    vd_dlist_rm(list, result);
+    return result;
+}
+
+VD_INLINE VdDListNode *vd_dlist_rm_last(VdDList *list)
+{
+    if (vd_dlist_is_empty(list)) return 0;
+
+    VdDListNode *result = vd_dlist_last(list);
+    vd_dlist_rm(list, result);
+    return result;
+}
+
+VD_INLINE void vd_dlist_node_link(VdDListNode *node, VdDListNode *prev, VdDListNode *next)
+{
+    next->prev = node;
+    node->next = next;
+    node->prev = prev;
+    prev->next = node;
+}
+
+VD_INLINE void vd_dlist_node_unlink(VdDListNode *node)
+{
+    node->next->prev = node->prev;
+    node->prev->next = node->next;
+    vd_dlist_node_init(node);
+}
+
+VD_INLINE size_t vd_dlist_count(VdDList *list)
+{
+    size_t count = 0;
+    VD_DLIST_FOR_EACH(list, n) {
+        count++;
+    }
+    return count;
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define DListNode                            VdDListNode
+#define DList                                VdDList
+#define vd_dlist_init(list)                  vd_dlist_init(list)
+#define vd_dlist_append(list, node)          vd_dlist_append(list, node)
+#define vd_dlist_count(list)                 vd_dlist_count(list)
+#define vd_dlist_rm(list, node)              vd_dlist_rm(list, node)
+#define vd_dlist_rm_first(list)              vd_dlist_rm_first(list)
+#define vd_dlist_rm_last(list)               vd_dlist_rm_last(list)
+#define vd_dlist_node_link(node, prev, next) vd_dlist_node_link(node, prev, next)
+#define vd_dlist_node_unlink(node)           vd_dlist_node_unlink(node)
+#define vd_dlist_append(list, node)          vd_dlist_append(list, node)
+#define vd_dlist_node_init(node)             vd_dlist_node_init(node)
+#define vd_dlist_node_is_empty(node)         vd_dlist_node_is_empty(node)
+#define vd_dlist_is_empty(list)              vd_dlist_is_empty(list)
+#define vd_dlist_first(list)                 vd_dlist_first(list)
+#define vd_dlist_last(list)                  vd_dlist_last(list)
+#define vd_dlist_node_append(node, target)   vd_dlist_node_append(node, target)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----FIXED ARRAY--------------------------------------------------------------------------------------------------- */
+typedef struct __VD_FixedArrayHeader {
+    uint32_t len;
+    uint32_t cap;
+} VdFixedArrayHeader;
+
+#define VD_FIXEDARRAY_HEADER(a)                         ((VdFixedArrayHeader*)(((uint8_t*)a) - sizeof(VdFixedArrayHeader)))
+
+/**
+ * @brief   A fixed size array with no dynamic reallocation whatsoever
+ *
+ * @details VD_FIXEDARRAY int *myarray = 0;
+ *          Prepend variables like this to indicate they are fixed arrays and not just pointers
+ */
+#define VD_FIXEDARRAY
+
+/**
+ * @brief Initialize the fixed array as empty with a set count
+ *
+ * @param a         Array pointer (must be 0 initially)
+ * @param count     The maximum capacity of the fixed array
+ * @param allocator Pointer to the arena that will allocate the fixed array
+ */
+#define VD_FIXEDARRAY_INIT(a, count, allocator)         ((a) = vd__fixed_array_allocate((allocator), (count), sizeof(*(a)), 0))
+#define VD_FIXEDARRAY_INIT_RESERVE(a, len, allocator)   ((a) = vd__fixed_array_allocate((allocator), (len),   sizeof(*(a)), 1))
+#define VD_FIXEDARRAY_CHECK(a, n)                       ((VD_FIXEDARRAY_HEADER(a)->len + (n)) <= VD_FIXEDARRAY_HEADER(a)->cap)
+#define VD_FIXEDARRAY_ADDN(a, n)                        (VD_ASSERT(VD_FIXEDARRAY_CHECK(a, n)), VD_ARRAY_HEADER(a)->len += n)
+#define VD_FIXEDARRAY_ADD(a, v)                         (VD_ASSERT(VD_FIXEDARRAY_CHECK(a, 1)), (a)[VD_FIXEDARRAY_HEADER(a)->len++] = (v))
+#define VD_FIXEDARRAY_LEN(a)                            (VD_FIXEDARRAY_HEADER(a)->len)
+#define VD_FIXEDARRAY_CAP(a)                            (VD_FIXEDARRAY_HEADER(a)->cap)
+#define VD_FIXEDARRAY_CLEAR(a)                          (VD_FIXEDARRAY_HEADER(a)->len = 0)
+#define VD_FIXEDARRAY_POP(a)                            ((a)[--VD_FIXEDARRAY_HEADER(a)->len])
+
+VD_INLINE void* vd__fixed_array_allocate(VdArena *arena, uint32_t capacity, size_t isize, int mark)
+{
+    size_t alloc_size = sizeof(VdFixedArrayHeader) + capacity * isize;
+    void *result = VD_MEMSET(vd_arena_alloc(arena, alloc_size), 0, alloc_size);
+    VdFixedArrayHeader *hdr = (VdFixedArrayHeader*)result;
+
+    hdr->cap = capacity;
+    if (mark) {
+        hdr->len = capacity;
+    }
+
+    return (void*) ((uint8_t*)result + sizeof(VdFixedArrayHeader));
+}
+
+
+#if VD_MACRO_ABBREVIATIONS
+#define fixedarray_init(a, count, allocator)         VD_FIXEDARRAY_INIT(a, count, allocator)
+#define fixedarray_init_reserve(a, len, allocator)   VD_FIXEDARRAY_INIT_RESERVE(a, len, allocator)
+#define fixedarray_addn(a, n)                        VD_FIXEDARRAY_ADDN(a, n)
+#define fixedarray_add(a, v)                         VD_FIXEDARRAY_ADD(a, v)
+#define fixedarray_len(a)                            VD_FIXEDARRAY_LEN(a)
+#define fixedarray_cap(a)                            VD_FIXEDARRAY_CAP(a)
+#define fixedarray_clear(a)                          VD_FIXEDARRAY_CLEAR(a)
+#define fixedarray_pop(a)                            VD_FIXEDARRAY_POP(a)
+#define fixedarray
+#endif
+
+/* ----DYNAMIC ARRAY------------------------------------------------------------------------------------------------- */
+typedef struct {
+    uint32_t     len;
+    uint32_t     cap;
+    VdArena   *arena;
+} VdDynArrayHeader;
+
+#define VD_DYNARRAY_HEADER(a)                      ((VdDynArrayHeader*)(((uint8_t*)a) - sizeof(VdDynArrayHeader)))
+#define VD_DYNARRAY_INIT(a, arena)                 ((a) = vd__dynarray_grow(a, sizeof(*(a)), 1, 0, arena))
+#define VD_DYNARRAY_INIT_WITH_CAP(a, arena, cap)   ((a) = vd__dynarray_grow(a, sizeof(*(a)), cap, cap, arena))
+#define VD_DYNARRAY_ADD(a, v)                      (VD_DYNARRAY_CHECKGROW(a, 1), (a)[VD_DYNARRAY_HEADER(a)->len++] = (v))
+#define VD_DYNARRAY_PUSH(a)                        (VD_DYNARRAY_CHECKGROW(a, 1), &((a)[VD_DYNARRAY_HEADER(a)->len++]))
+#define VD_DYNARRAY_ADDN(a, n)                     (VD_DYNARRAY_CHECKGROW(a, n), VD_DYNARRAY_HEADER(a)->len += (n))
+#define VD_DYNARRAY_CLEAR(a)                       ((a) ? VD_DYNARRAY_HEADER(a)->len = 0 : 0)
+#define VD_DYNARRAY_POP(a)                         (VD_DYNARRAY_HEADER(a)->len--, (a)[VD_DYNARRAY_HEADER(a)->len])
+#define VD_DYNARRAY_LAST(a)                        ((a)[VD_DYNARRAY_HEADER(a)->len - 1])
+#define VD_DYNARRAY_LEN(a)                         ((a) ? VD_DYNARRAY_HEADER(a)->len : 0)
+#define VD_DYNARRAY_CAP(a)                         ((a) ? VD_DYNARRAY_HEADER(a)->cap : 0)
+#define VD_DYNARRAY_DEL(a, i)                      do { uint32_t _i_ = (i); if (_i_ == (VD_DYNARRAY_LEN(a) - 1)) { (VD_DYNARRAY_HEADER(a)->len--); } else {  (a)[_i_] = VD_DYNARRAY_LAST(a); (VD_DYNARRAY_HEADER(a)->len--); } } while (0)
+#define VD_DYNARRAY_ARENAP(a)                      ((a) ? VD_DYNARRAY_HEADER(a)->arena : 0)
+#define VD_DYNARRAY_GROW(a, b, c)                  ((a) = vd__dynarray_grow((a), sizeof(*(a)), (b), (c), VD_DYNARRAY_ARENAP(a)))
+#define VD_DYNARRAY_PTR_CHECKED(a, i)              ((i < VD_DYNARRAY_LEN(a)) ? &(a)[i] : 0)
+
+// @todo(mdodis): fix & check dynarray & fixedarray (they use invalid macros and dynarray is not tested)
+#define VD_DYNARRAY_CHECKGROW(a, n)                      \
+    ((!(a) || VD_DYNARRAY_HEADER(a)->len + (n) > VD_DYNARRAY_HEADER(a)->cap) \
+    ? (VD_DYNARRAY_GROW(a, n, 0), 0) : 0)
+
+#define VD_DYNARRAY
+
+VD_INLINE void *vd__dynarray_grow(void *a, size_t tsize, uint32_t addlen, uint32_t mincap, VdArena *arena)
+{
+    size_t min_len = VD_DYNARRAY_LEN(a) + addlen;
+
+    if (min_len > mincap) {
+        mincap = (uint32_t)min_len;
+    }
+
+    if (mincap <= VD_DYNARRAY_CAP(a)) {
+        return a;
+    }
+
+    if (mincap < (2 * VD_DYNARRAY_CAP(a))) {
+        mincap = 2 * VD_DYNARRAY_CAP(a);
+    } else if (mincap < 4) {
+        mincap = 4;
+    }
+
+    void *b = vd_arena_resize(arena, 
+        a ? VD_DYNARRAY_HEADER(a) : 0,
+        VD_DYNARRAY_CAP(a) == 0 ? 0 : tsize * VD_DYNARRAY_CAP(a) + sizeof(VdDynArrayHeader),
+        tsize * mincap + sizeof(VdDynArrayHeader));
+
+    b = (uint8_t*)b + sizeof(VdDynArrayHeader);
+
+    if (a == 0) {
+        VD_DYNARRAY_HEADER(b)->len = 0;
+        VD_DYNARRAY_HEADER(b)->arena = arena;
+    }
+
+    VD_DYNARRAY_HEADER(b)->cap = mincap;
+    return b;
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define dynarray_init(a, arena)               VD_DYNARRAY_INIT(a, arena)
+#define dynarray_init_with_cap(a, arena, cap) VD_DYNARRAY_INIT_WITH_CAP(a, arena, cap)
+#define dynarray_add(a, v)                    VD_DYNARRAY_ADD(a, v)
+#define dynarray_push(a)                      VD_DYNARRAY_PUSH(a)
+#define dynarray_addn(a, n)                   VD_DYNARRAY_ADDN(a, n)
+#define dynarray_clear(a)                     VD_DYNARRAY_CLEAR(a)
+#define dynarray_pop(a)                       VD_DYNARRAY_POP(a)
+#define dynarray_last(a)                      VD_DYNARRAY_LAST(a)
+#define dynarray_len(a)                       VD_DYNARRAY_LEN(a)
+#define dynarray_cap(a)                       VD_DYNARRAY_CAP(a)
+#define dynarray_del(a, i)                    VD_DYNARRAY_DEL(a, i)
+#define dynarray_ptr_checked(a, i)            VD_DYNARRAY_PTR_CHECKED(a, i)
+#define dynarray
+#endif
+
+/* ----STR----------------------------------------------------------------------------------------------------------- */
+typedef struct __VD_Str {
+    char        *s;
+    size_t   len;
+} VdStr;
+
+#define VD_STR_MAX (~(0ull))
+
+VD_INLINE int      vd_cstr_cmp(char* _a, char* _b);
+VD_INLINE size_t    vd_cstr_len(const char* a);
+VD_INLINE char*     vd_cstr_dup(VdArena *arena, const char* s);
+VD_INLINE char*     vd_cstr_cncat(VdArena *arena, char* a, char* b);
+VD_INLINE char*     vd_cstr_ncncat(VdArena *arena, size_t *num_strings, char* *strings);
+VD_INLINE char*     vd_cstr_from_str(VdArena *arena, VdStr s);
+
+VD_INLINE VdStr      vd_str_null(void)                                                  { VdStr result = {0, 0}; return result; }
+VD_INLINE VdStr      vd_str_from_cstr(char* s)                                         { VdStr result = { s, vd_cstr_len(s) }; return result; }
+VD_INLINE VdStr      vd_str_dup(VdArena *a, VdStr s);
+VD_INLINE VdStr      vd_str_dup_from_cstr(VdArena *a, char* s);
+VD_INLINE size_t    vd_str_first_of(VdStr s, VdStr q, uint64_t start);
+VD_INLINE size_t    vd_str_last_of(VdStr s, VdStr q, uint64_t start);
+VD_INLINE int      vd_str_split(VdStr s, size_t at, VdStr *left, VdStr *right);
+VD_INLINE int      vd_str_splitse(VdStr s, size_t start, size_t end, VdStr *left, VdStr *right);
+VD_INLINE VdStr      vd_str_chop_left(VdStr s, size_t at)                              { VdStr left, right; return vd_str_split(s, at, &left, &right) ? right : vd_str_null(); }
+VD_INLINE VdStr      vd_str_chop_right(VdStr s, size_t at)                             { VdStr left, right; return vd_str_split(s, at, &left, &right) ? left : vd_str_null(); }
+VD_INLINE int      vd_str_eq(VdStr a, VdStr b);
+VD_INLINE VdStr      vd_str_join(VdArena *arena, VdStr a, VdStr b, int null_sep);
+VD_INLINE int      vd_str_ends_with_char(VdStr a, char c)                             { return a.len > 0 ? a.s[a.len - 1] == c : VD_FALSE; }
+
+VD_INLINE int vd_cstr_cmp(char* _a, char* _b)
+{
+    char* a = _a;
+    char* b = _b;
+
+    while (*a == *b) {
+        if (*a == 0) return VD_TRUE;
+
+        a++;
+        b++;
+    }
+
+    return VD_FALSE;
+}
+
+VD_INLINE size_t vd_cstr_len(const char* a)
+{
+    size_t result = 0;
+    while (*a++) result++;
+    return result;
+}
+
+VD_INLINE VdStr vd_str_dup(VdArena *a, VdStr s) {
+    VdStr result;
+    result.s = (char*)vd_arena_alloc(a, s.len);
+    result.len = s.len;
+    VD_MEMCPY(result.s, s.s, s.len);
+    return result;
+}
+
+VD_INLINE VdStr vd_str_dup_from_cstr(VdArena *a, char* s) {
+    return vd_str_dup(a, vd_str_from_cstr(s));
+}
+
+VD_INLINE size_t vd_str_first_of(VdStr s, VdStr q, uint64_t start) {
+    if (s.len == 0) return 0;
+    if (q.len == 0) return 0;
+
+    size_t qindex = 0;
+    size_t i;
+    for (i = start; i < s.len; ++i) {
+        if (s.s[i] == q.s[qindex]) {
+            qindex++;
+        } else {
+            qindex = 0;
+        }
+
+        if (qindex == q.len) {
+            return i - q.len + 1;
+        }
+    }
+
+    return s.len;
+}
+
+VD_INLINE size_t vd_str_last_of(VdStr s, VdStr q, uint64_t start)
+{
+    if (s.len == 0) return s.len;
+
+    start = s.len < start ? s.len : start;
+
+    size_t sindex = q.len;
+    size_t i      = start;
+
+    while (i != 0) {
+        i--;
+        sindex--;
+
+        if (s.s[i] != q.s[sindex]) {
+            sindex = q.len;
+        }
+
+        if (sindex == 0) {
+            return i;
+        }
+    }
+
+    return s.len;
+}
+
+VD_INLINE int vd_str_split(VdStr s, size_t at, VdStr *left, VdStr *right)
+{
+    if ((s.len < at) || (at >= s.len)) {
+        return VD_FALSE;
+    }
+
+    left->s    = s.s;
+    left->len  = at + 1;
+    right->s   = s.s + at + 1;
+    right->len = s.len - (at + 1);
+
+    return VD_TRUE;
+}
+
+VD_INLINE int vd_str_splitse(VdStr s, size_t start, size_t end, VdStr *left, VdStr *right)
+{
+    if (start > end || end > s.len) {
+        return VD_FALSE;
+    }
+
+    left->s = s.s;
+    left->len = start;
+    right->s = s.s + end;
+    right->len = s.len - end;
+
+    return VD_TRUE;
+}
+
+VD_INLINE int vd_str_eq(VdStr a, VdStr b)
+{
+    if (a.len != b.len) return VD_FALSE;
+
+    for (size_t i = 0; i < a.len; ++i) {
+        if (a.s[i] != b.s[i]) return VD_FALSE;        
+    }
+
+    return VD_TRUE;
+}
+
+VD_INLINE char* vd_cstr_cncat(VdArena *arena, char* a, char* b) {
+    size_t la = vd_cstr_len(a);
+    size_t lb = vd_cstr_len(b);
+
+    char* result = (char*)vd_arena_alloc(arena, la + lb + 1);
+
+    VD_MEMCPY(result, a, la);
+    VD_MEMCPY(result + la, b, lb);
+    result[la + lb] = 0;
+    return result;
+}
+
+VD_INLINE char* vd_cstr_dup(VdArena *arena, const char* s) {
+    size_t ls = vd_cstr_len(s);
+    char* result = (char*)vd_arena_alloc(arena, ls + 1);
+    VD_MEMCPY(result, s, ls);
+    result[ls] = 0;
+    return result;
+}
+
+VD_INLINE VdStr vd_str_join(VdArena *arena, VdStr a, VdStr b, int null_sep)
+{
+    size_t final_size = a.len + b.len + (null_sep ? 1 : 0);
+    char *result = (char*)vd_arena_alloc(arena, final_size);
+
+    VD_MEMCPY(result, a.s, a.len);
+    VD_MEMCPY(result + a.len, b.s, b.len);
+    if (null_sep) {
+        result[a.len + b.len] = 0;
+    }
+
+    VdStr _r = { result, final_size };
+    return _r;
+}
+
+VD_INLINE char* vd_cstr_from_str(VdArena *arena, VdStr s)
+{
+    char *result = (char*)vd_arena_alloc(arena, s.len + 1);
+    VD_MEMCPY(result, s.s, s.len);
+    result[s.len] = 0;
+    return result;
+}
+
+#if VD_CPP
+#define VD_LIT(string)        {((char*)string), (sizeof(string) - 1)}
+#define VD_LIT_INLINE(string) {((char*)string), (sizeof(string) - 1)}
+#else
+#define VD_LIT(string)        (VdStr) { .s = (string), .len = (sizeof(string) - 1), }
+#define VD_LIT_INLINE(string) {(string), (sizeof(string) - 1)}
+#endif
+
+#define VD_STR_EXPAND(string) (int)(string).len, (string).s
+
+#if VD_MACRO_ABBREVIATIONS
+#define Str                 VdStr
+#define LIT                 VD_LIT
+#define LIT_INLINE          VD_LIT_INLINE
+#define STR_EXPAND          VD_STR_EXPAND
+#define cstr_cmp            vd_cstr_cmp
+#define cstr_len            vd_cstr_len
+#define cstr_dup            vd_cstr_dup
+#define cstr_cncat          vd_cstr_cncat
+#define cstr_ncncat         vd_cstr_ncncat
+#define cstr_from_str       vd_cstr_from_str
+#define str_null            vd_str_null
+#define str_from_cstr       vd_str_from_cstr
+#define str_dup             vd_str_dup
+#define str_dup_from_cstr   vd_str_dup_from_cstr
+#define str_first_of        vd_str_first_of
+#define str_last_of         vd_str_last_of
+#define str_split           vd_str_split
+#define str_splitse         vd_str_splitse
+#define str_chop_left       vd_str_chop_left
+#define str_chop_right      vd_str_chop_right
+#define str_eq              vd_str_eq
+#define str_join            vd_str_join
+#define str_ends_with_char  vd_str_ends_with_char
+#endif
+
+/* ----UTF8---------------------------------------------------------------------------------------------------------- */
+static VD_INLINE uint8_t vd_utf8_codepoint_len(uint32_t codepoint);
+
+static VD_INLINE uint8_t vd_utf8_codepoint_len(uint32_t codepoint)
+{
+    char* s = (char*)&codepoint;    
+    uint8_t b = s[0];
+
+    if ((b & 0x80) == 0x00) return 1;
+    if ((b & 0xE0) == 0xC0) return 2;
+    if ((b & 0xF0) == 0xE0) return 3;
+    if ((b & 0xF8) == 0xF0) return 4;
+
+    return VD_U8_MAX;
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define utf8_codepoint_len vd_utf8_codepoint_len
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----STR BUILDER--------------------------------------------------------------------------------------------------- */
+typedef enum {
+    VD__STR_BUILDER_NODE_TYPE_STRING,
+} Vd__StrBuilderNodeType;
+
+typedef struct Vd__StrBuilderNode Vd__StrBuilderNode;
+struct Vd__StrBuilderNode {
+    Vd__StrBuilderNodeType type;
+    VdDListNode            node;
+    union {
+        VdStr string;
+    } dat;
+};
+
+typedef struct {
+    VdDList      list;
+    int          will_null_terminate;
+    VdArena      *arena;
+} VdStrBuilder;
+
+VD_INLINE void  vd_str_builder_init(VdStrBuilder *builder, VdArena *arena);
+VD_INLINE void  vd_str_builder_push_cstr(VdStrBuilder *builder, const char *cstring);
+VD_INLINE void  vd_str_builder_push_str(VdStrBuilder *builder, VdStr str);
+VD_INLINE void  vd_str_builder_null_terminate(VdStrBuilder *builder);
+VD_INLINE VdStr vd_str_builder_compose(VdStrBuilder *builder, VdArena *opt_arena);
+
+VD_INLINE void vd_str_builder_init(VdStrBuilder *builder, VdArena *arena)
+{
+    vd_dlist_init(&builder->list);
+    builder->arena = arena;
+    builder->will_null_terminate = 0;
+}
+
+VD_INLINE void vd_str_builder_push_cstr(VdStrBuilder *builder, const char *cstring)
+{
+    vd_str_builder_push_str(builder, vd_str_from_cstr((char*)cstring));
+}
+
+VD_INLINE void vd_str_builder_push_str(VdStrBuilder *builder, VdStr str)
+{
+    Vd__StrBuilderNode *node = VD_ARENA_PUSH_STRUCT(builder->arena, Vd__StrBuilderNode);
+    node->type = VD__STR_BUILDER_NODE_TYPE_STRING;
+    node->dat.string = vd_str_dup(builder->arena, str);
+    vd_dlist_node_init(&node->node);
+    vd_dlist_append(&builder->list, &node->node);
+}
+
+VD_INLINE void vd_str_builder_null_terminate(VdStrBuilder *builder)
+{
+    builder->will_null_terminate = 1;
+}
+
+VD_INLINE VdStr vd_str_builder_compose(VdStrBuilder *builder, VdArena *opt_arena)
+{
+    VdArena *arena = opt_arena == NULL ? builder->arena : opt_arena;
+
+    int allocate_space_for_null = builder->will_null_terminate;
+
+    VdDListNode *last_node = vd_dlist_last(&builder->list);
+
+    char *mem_result = 0;
+    size_t mem_size = 0;
+    VD_DLIST_FOR_EACH(&builder->list, it) {
+        Vd__StrBuilderNode *node = VD_CONTAINER_OF(it, Vd__StrBuilderNode, node);
+
+        size_t req_size = 0;
+        switch (node->type) {
+            case VD__STR_BUILDER_NODE_TYPE_STRING: {
+                req_size = node->dat.string.len * sizeof(char);
+            } break;
+
+            default: VD_IMPOSSIBLE();
+        }
+
+        size_t request_size = mem_size + req_size;
+        if (allocate_space_for_null && (it == last_node)) {
+            request_size += 1;
+        }
+
+        mem_result = (char*)vd_arena_resize(arena, mem_result, mem_size, request_size);
+
+        switch (node->type) {
+            case VD__STR_BUILDER_NODE_TYPE_STRING: {
+                for (size_t i = 0; i < node->dat.string.len; ++i) {
+                    mem_result[mem_size + i] = node->dat.string.s[i];
+                }
+            } break;
+
+            default: VD_IMPOSSIBLE();
+        }
+
+        if (allocate_space_for_null && (it == last_node)) {
+            mem_result[mem_size + req_size] = 0;
+        }
+
+        mem_size += req_size;
+    }
+
+    VdStr result = { mem_result, mem_size };
+    return result;}
+
+#if VD_MACRO_ABBREVIATIONS
+#define StrBuilder                 VdStrBuilder
+#define str_builder_init           vd_str_builder_init
+#define str_builder_push_str       vd_str_builder_push_str
+#define str_builder_push_cstr      vd_str_builder_push_cstr
+#define str_builder_compose        vd_str_builder_compose
+#define str_builder_null_terminate vd_str_builder_null_terminate
+#endif 
+/* ----PARSING------------------------------------------------------------------------------------------------------- */
+VD_INLINE int      vd_is_ascii_digit(int c);
+VD_INLINE int      vd_is_letter(int c);
+VD_INLINE int      vd_is_cdecl_start(int c);
+VD_INLINE int      vd_is_cdecl_continue(int c);
+int                vd_parse_u64(VdStr s, uint64_t *r);
+
+VD_INLINE int vd_is_ascii_digit(int c)
+{
+    return (c >= '0') && (c <= '9');
+}
+
+VD_INLINE int vd_is_letter(int c)
+{
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+VD_INLINE int vd_is_uppercase(int c)
+{
+    return (c >= 'A' && c <= 'Z');
+}
+
+VD_INLINE int vd_is_lowercase(int c)
+{
+    return (c >= 'A' && c <= 'Z');
+}
+
+VD_INLINE int vd_uppercase_to_lowercase(int c)
+{
+    return c - 'A' + 'a';
+}
+
+VD_INLINE int vd_lowercase_to_uppercase(int c)
+{
+    return c - 'a' + 'A';
+}
+
+VD_INLINE int vd_is_cdecl_start(int c)
+{
+    return vd_is_letter(c) || c == '_';
+}
+
+VD_INLINE int vd_is_cdecl_continue(int c)
+{
+    return vd_is_cdecl_start(c) || vd_is_ascii_digit(c);
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define is_ascii_digit          vd_is_ascii_digit
+#define is_letter               vd_is_letter
+#define is_upppercase           vd_is_uppercase
+#define is_lowercase            vd_is_lowercase
+#define uppercase_to_lowercase  vd_uppercase_to_lowercase 
+#define lowercase_to_uppercase  vd_lowercase_to_uppercase
+#define is_cdecl_start          vd_is_cdecl_start
+#define is_cdecl_continue       vd_is_cdecl_continue
+#define parse_u64               vd_parse_u64
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----ARG----------------------------------------------------------------------------------------------------------- */
+typedef struct __VD_Arg {
+    int argc;
+    char **argv;
+
+    int argi;
+    int ci;
+} VdArg;
+
+VdArg vd_arg_new(int argc, char **argv);
+void  vd_arg_skip_program_name(VdArg *arg);
+void  vd_arg_skip(VdArg *arg);
+int vd_arg_at_end(VdArg *arg);
+int vd_arg_get_name(VdArg *arg, VdStr *name);
+int vd_arg_get_uint(VdArg *arg, uint64_t *i);
+int vd_arg_get_str(VdArg *arg, VdStr *str);
+int vd_arg_expect_char(VdArg *arg, char c);
+
+#if VD_MACRO_ABBREVIATIONS
+#define Arg                        VdArg
+#define arg_new(argc, argv)        vd_arg_new(argc, argv)
+#define arg_skip_program_name(arg) vd_arg_skip_program_name(arg)
+#define arg_skip(arg)              vd_arg_skip(arg)
+#define arg_at_end(arg)            vd_arg_at_end(arg)
+#define arg_get_name(arg, name)    vd_arg_get_name(arg, name)
+#define arg_get_uint(arg, i)       vd_arg_get_uint(arg, i)
+#define arg_get_str(arg, str)      vd_arg_get_str(arg, str)
+#define arg_expect_char(arg, c)    vd_arg_expect_char(arg, c)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----HASH---------------------------------------------------------------------------------------------------------- */
+#ifndef VD_HASH64_CUSTOM
+#define VD_HASH64_CUSTOM 0
+#endif // !VD_HASH64_CUSTOM
+
+#if !VD_HASH64_CUSTOM
+#define VD_HASH64_DEFAULT_SEED (0x9747b28c)
+
+VD_INLINE uint64_t vd_hash64(const void *data, uint64_t len, uint32_t seed);
+VD_INLINE uint64_t vd_dhash64(const void *data, uint64_t len);
+VD_INLINE uint64_t vd_dhash64_str(VdStr s);
+
+VD_INLINE uint64_t vd_hash64(const void *data, uint64_t len, uint32_t seed)
+{
+    const uint32_t m = 0x5bd1e995;
+    const uint32_t r = 24;
+
+    uint64_t h = seed ^ len;
+
+    const uint8_t *bytes = (const uint8_t*)data;
+
+    while (len >= 4)
+    {
+        uint32_t k = *(uint32_t*)bytes;
+
+        k *= m;
+        k ^= k >> r;
+        k *= m;
+
+        h *= m;
+        h ^= k;
+
+        bytes += 4;
+        len -= 4;   
+    }
+
+    switch (len) {
+        case 3: h ^= bytes[2] << 16;
+        case 2: h ^= bytes[1] << 8;
+        case 1: h ^= bytes[0];
+                h *= m;
+    }
+
+    h ^= h >> 13;
+    h *= m;
+    h ^= h >> 15;
+
+    return h;
+}
+
+VD_INLINE uint64_t vd_dhash64(const void *data, uint64_t len) { return vd_hash64(data, len, VD_HASH64_DEFAULT_SEED); }
+#endif // !VD_HASH64_CUSTOM
+
+VD_INLINE uint64_t vd_dhash64_str(VdStr s) { return vd_dhash64(s.s, s.len); }
+
+#if VD_MACRO_ABBREVIATIONS
+#define hash64(data, len, seed) vd_hash64(data, len, seed)
+#define dhash64(data, len)      vd_dhash64(data, len)
+#define dhash64_str(s)          vd_dhash64_str(VdStr s)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----STRMAP-------------------------------------------------------------------------------------------------------- */
+typedef struct {
+    uint32_t   cap;
+    uint32_t   cap_total;
+    uint32_t   taken;
+    uint32_t   tsize;
+    VdArena *arena;
+} Vd__StrmapHeader;
+
+typedef struct Vd__StrmapBinPrefix Vd__StrmapBinPrefix;
+
+typedef enum {
+    VD__STRMAP_GET_BIN_FLAGS_CREATE       = 1 << 1,
+    VD__STRMAP_GET_BIN_FLAGS_SET_UNUSED   = 1 << 2,
+    VD__STRMAP_GET_BIN_FLAGS_GET_EXISTING = 1 << 3,
+} Vd__StrmapGetBinFlags;
+
+typedef enum {
+    VD__STRMAP_SET_MODE_NEW_ONLY  = 0,
+    VD__STRMAP_SET_MODE_OVERWRITE = 1,
+} Vd__StrmapSetMode;
+
+#ifndef VD_STRMAP_KEY_PREFIX_LEN_CUSTOM
+#define VD_STRMAP_KEY_PREFIX_LEN 31
+#endif // !VD_STRMAP_KEY_PREFIX_LEN_CUSTOM
+
+struct Vd__StrmapBinPrefix {
+    Vd__StrmapBinPrefix *next;                                   //  8 bytes
+    Vd__StrmapBinPrefix *insq;                                   //  8 bytes
+    char                *key_rest;                               //  8 bytes
+    uint32_t               key_len;                                 //  4 bytes
+    uint32_t               key_rest_cap;                            //  4 bytes
+    uint8_t                used;                                    //  1 byte
+    char                key_prefix[VD_STRMAP_KEY_PREFIX_LEN];    // 31 bytes (default)
+};                                                               // = 64 bytes
+
+/**
+ * @brief Options to modify Strmap behavior, allocation strategy, etc.
+ */
+typedef struct __VD_StrmapInitOptions {
+    /** A value from [0.3, 0.9] that determines the amount of slots assigned to the addressable region. */
+    float address_scale;
+
+    /** The estimated key length in bytes. If this is higher than VD_STRMAP_KEY_PREFIX_LEN, then more space will be allocated up front for key storage. */
+    uint32_t average_key_len;
+} VdStrmapInitOptions;
+
+/*
+ * @brief   A string map is hash table using coalesced hashing
+ *
+ * @details VD_STRMAP int *my_map = 0;
+ *          Prepend variables like this to indicate that they are string maps and not pointers
+ */
+#define VD_STRMAP
+#define VD_STRMAP_DEFAULT_CAP              1024
+#define VD_STRMAP_HEADER(m)                ((Vd__StrmapHeader*)(((uint8_t*)(m)) - sizeof(Vd__StrmapHeader)))
+#define VD_STRMAP_INIT(m, arena, cap, o)   ((m) = (vd__strmap_init((arena), sizeof(*m), (cap), (o))))
+#define VD_STRMAP_INIT_DEFAULT(m, arena)   VD_STRMAP_INIT((m), (arena), VD_STRMAP_DEFAULT_CAP, 0)
+#define VD_STRMAP_SET(m, k, v)             vd__strmap_set((m), (k), (void*)(v), VD__STRMAP_SET_MODE_NEW_ONLY)
+#define VD_STRMAP_GET(m, k, v)             vd__strmap_get((m), (k), (void*)(v))
+#define VD_STRMAP_GET_PTR(m, k)            vd__strmap_get_ptr((m), (k))
+#define VD_STRMAP_RM(m, k)                 (vd__strmap_get_bin((m), (k), VD__STRMAP_GET_BIN_FLAGS_SET_UNUSED) != 0)
+#define VD_STRMAP_OVERWRITE(m, k, v)       vd__strmap_set((m), (k), (void*)(v), VD__STRMAP_SET_MODE_OVERWRITE)
+#define VD_STRMAP_COUNT(m)                 ((m) == 0 ? 0 : VD_STRMAP_HEADER(m)->taken)
+#define VD_STRMAP_TSIZE(m)                 ((m) == 0 ? 0 : VD_STRMAP_HEADER(m)->tsize)
+#define VD_STRMAP_TOTAL_CAP(m)             ((m) == 0 ? 0 : VD_STRMAP_HEADER(m)->cap_total)
+#define VD_STRMAP_ARENAP(m)                ((m) == 0 ? 0 : VD_STRMAP_HEADER(m)->arena)
+#define VD_STRMAP_ENTRY_SIZE(m)            (VD_STRMAP_HEADER(m)->tsize + sizeof(Vd__StrmapBinPrefix))
+#define VD_STRMAP_GET_BIN(m, i)            ((Vd__StrmapBinPrefix*) (((uint8_t*)m) + (VD_STRMAP_ENTRY_SIZE(m) * (i))))
+#define VD_STRMAP_GET_ENTRY(m, i)          ((void*)((uint8_t*)VD_STRMAP_GET_BIN(m, i) + sizeof(Vd__StrmapBinPrefix)))
+#define VD_STRMAP_GET_KEY_PREFIX(m, i)     VD_STRMAP_GET_BIN(m, i)->key_prefix
+#define VD_STRMAP_GET_KEY_LEN(m, i)        VD_STRMAP_GET_BIN(m, i)->key_len
+#define VD_STRMAP_GET_BIN_USED(m, i)       VD_STRMAP_GET_BIN(m, i)->used
+#define VD_STRMAP_GET_BIN_NEXT(m, i)       VD_STRMAP_GET_BIN(m, i)->next
+#define VD_STRMAP_GET_BIN_INDEX(m, b)      (size_t)(((uintptr_t)b - (uintptr_t)m) / (uintptr_t)(VD_STRMAP_ENTRY_SIZE(m)))
+#define VD_STRMAP_GET_BIN_VPTR(m, i)       ((void*)(((uint8_t*)VD_STRMAP_GET_BIN(m, i)) + sizeof(Vd__StrmapBinPrefix)))
+#define VD_STRMAP_BIN_MOVE_TO_VPTR(b)      ((void*)(((uint8_t*)(b)) + sizeof(Vd__StrmapBinPrefix)))
+    
+void*                 vd__strmap_init(VdArena *arena, uint32_t tsize, uint32_t cap, VdStrmapInitOptions *options);
+Vd__StrmapBinPrefix*  vd__strmap_get_bin(void *map, VdStr key, Vd__StrmapGetBinFlags op);
+VD_INLINE int       vd__strmap_get(void *map, VdStr key, void *value);
+VD_INLINE void*       vd__strmap_get_ptr(void *map, VdStr key);
+VD_INLINE int       vd__strmap_set(void *map, VdStr key, void *value, Vd__StrmapSetMode mode);
+
+VD_INLINE int vd__strmap_get(void *map, VdStr key, void *value)
+{
+    // Look for bin 
+    Vd__StrmapBinPrefix *bin = vd__strmap_get_bin(map, key, VD__STRMAP_GET_BIN_FLAGS_GET_EXISTING);
+    if (bin == 0) return VD_FALSE;
+
+    // If found the copy over the data
+    uint8_t *bin_data = ((uint8_t*)bin) + sizeof(Vd__StrmapBinPrefix);
+    VD_MEMCPY(value, bin_data, VD_STRMAP_HEADER(map)->tsize);
+    return VD_TRUE;
+}
+
+VD_INLINE void *vd__strmap_get_ptr(void *map, VdStr key)
+{
+    // Look for bin 
+    Vd__StrmapBinPrefix *bin = vd__strmap_get_bin(map, key, VD__STRMAP_GET_BIN_FLAGS_GET_EXISTING);
+    if (bin == 0) return 0;
+
+    // If found the copy over the data
+    uint8_t *bin_data = ((uint8_t*)bin) + sizeof(Vd__StrmapBinPrefix);
+    return (void*)bin_data;
+}
+
+VD_INLINE int vd__strmap_set(void *map, VdStr key, void *value, Vd__StrmapSetMode mode)
+{
+    if (mode == VD__STRMAP_SET_MODE_NEW_ONLY) {
+        Vd__StrmapBinPrefix *bin = vd__strmap_get_bin(map, key, VD__STRMAP_GET_BIN_FLAGS_CREATE);
+        if (bin == 0) return VD_FALSE;
+
+        uint8_t *bin_data = ((uint8_t*)bin) + sizeof(Vd__StrmapBinPrefix);
+        VD_MEMCPY(bin_data, value, VD_STRMAP_HEADER(map)->tsize);
+        return VD_TRUE;
+    } else {
+        Vd__StrmapBinPrefix *bin = vd__strmap_get_bin(map, key, (Vd__StrmapGetBinFlags)(VD__STRMAP_GET_BIN_FLAGS_CREATE | VD__STRMAP_GET_BIN_FLAGS_GET_EXISTING));
+        if (bin == 0) return VD_FALSE;
+
+        uint8_t *bin_data = ((uint8_t*)bin) + sizeof(Vd__StrmapBinPrefix);
+        VD_MEMCPY(bin_data, value, VD_STRMAP_HEADER(map)->tsize);
+        return VD_TRUE;
+    }
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define strmap
+#define strmap_init(m, arena, cap, o) VD_STRMAP_INIT(m, arena, cap, o)
+#define strmap_init_default(m, arena) VD_STRMAP_INIT_DEFAULT(m, arena)
+#define strmap_set(m, k, v)           VD_STRMAP_SET(m, k, v)
+#define strmap_get(m, k, v)           VD_STRMAP_GET(m, k, v)
+#define strmap_get_ptr(m, k)          VD_STRMAP_GET_PTR(m, k)
+#define strmap_rm(m, k)               VD_STRMAP_RM(m, k)
+#define strmap_overwrite(m, k, v)     VD_STRMAP_OVERWRITE(m, k, v)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----KVMAP--------------------------------------------------------------------------------------------------------- */
+typedef struct {
+    uint32_t   cap;
+    uint32_t   cap_total;
+    uint32_t   taken;
+    uint32_t   ksize;
+    uint32_t   vsize;
+} Vd__KVMapHeader;
+
+typedef struct Vd__KVMapBinPrefix Vd__KVMapBinPrefix;
+
+struct Vd__KVMapBinPrefix {
+    Vd__KVMapBinPrefix *next;
+    Vd__KVMapBinPrefix *insq;
+    size_t            used;
+};
+
+typedef enum {
+    VD__KVMAP_GET_BIN_FLAGS_CREATE       = 1 << 1,
+    VD__KVMAP_GET_BIN_FLAGS_SET_UNUSED   = 1 << 2,
+    VD__KVMAP_GET_BIN_FLAGS_GET_EXISTING = 1 << 3,
+} Vd__KVMapGetBinFlags;
+
+typedef enum {
+    VD__KVMAP_SET_MODE_NEW_ONLY  = 0,
+    VD__KVMAP_SET_MODE_OVERWRITE = 1,
+} Vd__KVMapSetMode;
+
+
+/**
+ * @sym VdKVMapInitOptions
+ *
+ * @brief Options to modify KVMap behavior, allocation strategy, etc.
+ */
+typedef struct __VD_KVMapInitOptions {
+    /** A value from [0.3, 0.9] that determines the amount of slots assigned to the addressable region. */
+    float address_scale;
+} VdKVMapInitOptions;
+
+
+/*
+ * Expect T: struct { TKey k; TValue v; };
+ */
+
+#define VD_KVMAP
+#define VD_KVMAP_DEFAULT_CAP              1024
+#define VD_KVMAP_HEADER(m)                ((Vd__KVMapHeader*)(((uint8_t*)(m)) - sizeof(Vd__KVMapHeader)))
+#define VD_KVMAP_INIT(m, arena, cap, o)   ((m) = (vd__kvmap_init((arena), sizeof(m->k), sizeof(m->v), (cap), (o))))
+#define VD_KVMAP_INIT_DEFAULT(m, arena)   VD_KVMAP_INIT((m), (arena), VD_KVMAP_DEFAULT_CAP, NULL)
+#define VD_KVMAP_SET(m, k, v)             vd__kvmap_set((m), (k), (void*)(v), VD__KVMAP_SET_MODE_NEW_ONLY)
+#define VD_KVMAP_GET(m, k, v)             vd__kvmap_get((m), (k), (void*)(v))
+#define VD_KVMAP_RM(m, k)                 (vd__kvmap_get_bin((m), (k), VD__KVMAP_GET_BIN_FLAGS_SET_UNUSED) != 0)
+#define VD_KVMAP_OVERWRITE(m, k, v)       vd__kvmap_set((m), (k), (void*)(v), VD__KVMAP_SET_MODE_OVERWRITE)
+#define VD_KVMAP_COUNT(m)                 ((m) == 0 ? 0 : VD_KVMAP_HEADER(m)->taken)
+#define VD_KVMAP_TOTAL_CAP(m)             ((m) == 0 ? 0 : VD_KVMAP_HEADER(m)->cap_total)
+#define VD_KVMAP_ARENAP(m)                ((m) == 0 ? 0 : VD_KVMAP_HEADER(m)->arena)
+#define VD_KVMAP_KSIZE(m)                 (VD_KVMAP_HEADER(m)->ksize)
+#define VD_KVMAP_VSIZE(m)                 (VD_KVMAP_HEADER(m)->vsize)
+#define VD_KVMAP_ENTRY_SIZE(m)            (VD_KVMAP_KSIZE(m) + VD_KVMAP_VSIZE(m) + sizeof(Vd__KVMapBinPrefix))
+#define VD_KVMAP_GET_BIN(m, i)            ((Vd__KVMapBinPrefix*) (((uint8_t*)m) + (VD_KVMAP_ENTRY_SIZE(m) * (i))))
+#define VD_KVMAP_GET_KEY(m, i)            ((void*)((uint8_t*)VD_KVMAP_GET_BIN(m, i) + sizeof(Vd__KVMapBinPrefix)))
+#define VD_KVMAP_GET_VAL(m, i)            ((void*)((uint8_t*)VD_KVMAP_GET_BIN(m, i) + sizeof(Vd__KVMapBinPrefix) + VD_KVMAP_KSIZE(m)))
+#define VD_KVMAP_GET_BIN_USED(m, i)       VD_KVMAP_GET_BIN(m, i)->used
+#define VD_KVMAP_GET_BIN_NEXT(m, i)       VD_KVMAP_GET_BIN(m, i)->next
+#define VD_KVMAP_GET_BIN_INDEX(m, b)      (size_t)(((uintptr_t)b - (uintptr_t)m) / (uintptr_t)(VD_KVMAP_ENTRY_SIZE(m)))
+#define VD_KVMAP_GET_BIN_KPTR(m, i)       ((void*)(((uint8_t*)VD_KVMAP_GET_BIN(m, i)) + sizeof(Vd__KVMapBinPrefix)))
+#define VD_KVMAP_GET_BIN_VPTR(m, i)       ((void*)(((uint8_t*)VD_KVMAP_GET_BIN(m, i)) + sizeof(Vd__KVMapBinPrefix) + VD_KVMAP_KSIZE(m)))
+#define VD_KVMAP_BIN_MOVE_TO_KPTR(b)      ((void*)(((uint8_t*)(b)) + sizeof(Vd__KVMapBinPrefix)))
+#define VD_KVMAP_BIN_MOVE_TO_VPTR(m, b)   ((void*)(((uint8_t*)(b)) + sizeof(Vd__KVMapBinPrefix) + VD_KVMAP_KSIZE(m)))
+
+void*                 vd__kvmap_init(VdArena *arena, uint32_t ksize, uint32_t vsize, uint32_t cap, VdKVMapInitOptions *options);
+Vd__KVMapBinPrefix*   vd__kvmap_get_bin(void *map, void *key, Vd__KVMapGetBinFlags op);
+VD_INLINE int       vd__kvmap_get(void *map, void *key, void *value);
+VD_INLINE int       vd__kvmap_set(void *map, void *key, void *value, Vd__KVMapSetMode mode);
+
+VD_INLINE int vd__kvmap_get(void *map, void *key, void *value)
+{
+    // Look for bin 
+    Vd__KVMapBinPrefix *bin = vd__kvmap_get_bin(map, key, VD__KVMAP_GET_BIN_FLAGS_GET_EXISTING);
+    if (bin == 0) return VD_FALSE;
+
+    // If found the copy over the data
+    uint8_t *bin_data = (uint8_t*)VD_KVMAP_BIN_MOVE_TO_VPTR(map, bin);
+    VD_MEMCPY(value, bin_data, VD_KVMAP_HEADER(map)->vsize);
+    return VD_TRUE;
+}
+
+VD_INLINE int vd__kvmap_set(void *map, void *key, void *value, Vd__KVMapSetMode mode)
+{
+    if (mode == VD__KVMAP_SET_MODE_NEW_ONLY) {
+        Vd__KVMapBinPrefix *bin = vd__kvmap_get_bin(map, key, VD__KVMAP_GET_BIN_FLAGS_CREATE);
+        if (bin == 0) return VD_FALSE;
+
+        uint8_t* bin_data = (uint8_t*)VD_KVMAP_BIN_MOVE_TO_VPTR(map, bin);
+        VD_MEMCPY(bin_data, value, VD_KVMAP_VSIZE(map));
+        return VD_TRUE;
+    } else {
+        Vd__KVMapBinPrefix *bin = (Vd__KVMapBinPrefix*)vd__kvmap_get_bin(map, key, (Vd__KVMapGetBinFlags)(VD__KVMAP_GET_BIN_FLAGS_CREATE | VD__KVMAP_GET_BIN_FLAGS_GET_EXISTING));
+        if (bin == 0) return VD_FALSE;
+
+        uint8_t* bin_data = (uint8_t*)VD_KVMAP_BIN_MOVE_TO_VPTR(map, bin);
+        VD_MEMCPY(bin_data, value, VD_KVMAP_HEADER(map)->vsize);
+        return VD_TRUE;
+    }
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define kvmap
+#define kvmap_init(m, arena, cap, o)      VD_KVMAP_INIT(m, arena, cap, o)
+#define kvmap_init_default(m, arena)      VD_KVMAP_INIT_DEFAULT(m, arena)
+#define kvmap_set(m, k, v)                VD_KVMAP_SET(m, k, v)
+#define kvmap_get(m, k, v)                VD_KVMAP_GET(m, k, v)
+#define kvmap_rm(m ,k)                    VD_KVMAP_RM(m, k)
+#define kvmap_overwrite(m, k, v)          VD_KVMAP_OVERWRITE(m, k, v)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----FILESYSTEM---------------------------------------------------------------------------------------------------- */
+#if VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+enum {
+    VD_FILE_FLAG_DIRECTORY = 1 << 0,
+};
+typedef uint32_t VdFileFlags;
+
+typedef struct VdDirectory {
+    void             *handle;
+    VdStr            filename;
+
+#if VD_PLATFORM_WINDOWS
+    int     windows_is_on_first_file;
+    int     windows_is_on_directory;
+#endif // VD_PLATFORM_WINDOWS
+} VdDirectory;
+
+typedef struct {
+    VdStr       name;
+    VdFileFlags flags;
+} VdFile;
+
+VD_API int  vd_directory_open(VdDirectory *directory, const char *path);
+VD_API int  vd_directory_get_file(VdDirectory *directory, VdFile *file);
+VD_API int  vd_directory_close(VdDirectory *directory);
+VD_API void vd_directory_walk_recursively(const char *path, void (*visit)(VdFile*, void*), void *userdata);
+#endif // VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+
+#include <stdio.h>
+VD_INLINE uint8_t*  vd_dump_file_to_bytes(VdArena *arena, char* file_path, size_t *len);
+VD_INLINE char* vd_dump_file_to_cstr(VdArena *arena, char* file_path, size_t *len);
+
+VD_INLINE uint8_t*  vd_dump_file_to_bytes(VdArena *arena, char* file_path, size_t *len)
+{
+    FILE *f = fopen(file_path, "rb");
+    fseek(f, 0, SEEK_END);
+    size_t size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    uint8_t *result = (uint8_t*)vd_arena_alloc(arena, size);
+    fread(result, size, 1, f);
+    *len = size;
+    return result;
+}
+
+VD_INLINE char* vd_dump_file_to_cstr(VdArena *arena, char* file_path, size_t *len)
+{
+    FILE *f = fopen(file_path, "rb");
+    if (f == 0) return 0;
+    
+    fseek(f, 0, SEEK_END);
+    size_t size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char *result = (char*)vd_arena_alloc(arena, size + 1);
+    if (fread(result, size, 1, f) != 1) {
+        return 0;
+    }
+
+    result[size] = 0;
+    *len = size;
+    return result;
+}
+
+#if VD_MACRO_ABBREVIATIONS
+#define Directory                                 VdDirectory
+#define File                                      VdFile
+#define directory_open                            vd_directory_open
+#define directory_get_file                        vd_directory_get_file
+#define directory_close                           vd_directory_close
+#define dump_file_to_bytes(arena, file_path, len) vd_dump_file_to_bytes(arena, file_path, len)
+#define dump_file_to_cstr(arena, file_path, len)  vd_dump_file_to_cstr(arena, file_path, len)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----DYNAMIC LIBRARIES--------------------------------------------------------------------------------------------- */
+typedef struct {
+    void *handle;
+} VdLibrary;
+
+VD_API VdLibrary vd_library_from_path(const char *path);
+VD_API void*     vd_library_address(VdLibrary library, const char *name);
+VD_API void      vd_library_free(VdLibrary library);
+
+/* ----SCRATCH------------------------------------------------------------------------------------------------------- */
+#ifndef VD_SCRATCH_PAGE_COUNT
+#define VD_SCRATCH_PAGE_COUNT 8
+#endif // VD_SCRATCH_PAGE_COUNT
+
+#ifndef VD_SCRATCH_PAGE_SIZE
+#define VD_SCRATCH_PAGE_SIZE KILOBYTES(64)
+#endif // VD_SCRATCH_PAGE_SIZE 
+
+typedef struct __VD_Scratch {
+    VdArena   arenas[VD_SCRATCH_PAGE_COUNT];
+    size_t   curr_arena;
+} VdScratch;
+
+void     vd_scratch_init(VdScratch *scratch);
+VdArena* vd_scratch_get_arena(VdScratch *scratch);
+void     vd_scratch_return_arena(VdScratch *scratch, VdArena *arena);
+
+#if VD_MACRO_ABBREVIATIONS
+#define Scratch                              VdScratch
+#define scratch_init(scratch)                vd_scratch_init(scratch)
+#define scratch_get_arena(scratch)           vd_scratch_get_arena(scratch)
+#define scratch_return_arena(scratch, arena) vd_scratch_return_arena(scratch, arena)
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----LOG----------------------------------------------------------------------------------------------------------- */
+#define VD_PROC_LOG(name) void name(int verbosity, char* string)
+typedef VD_PROC_LOG(VdProcLog);
+
+#define VD_LOG_VERBOSITY_ERROR      (-10)
+#define VD_LOG_VERBOSITY_WARNING    (0)
+#define VD_LOG_VERBOSITY_LOG        (10)
+#define VD_LOG_VERBOSITY_DEBUG      (100)
+
+#ifndef VD_CUSTOM_LOG
+#define VD_LOG_BUFFER                    0
+#define VD_LOG_BUFFER_SIZE               0
+#define VD_LOG_CALL(verbosity, message)
+#endif // !VD_CUSTOM_LOG
+
+#define VD_LOG_IMPL(verbosity, fmt, ...) do {\
+        snprintf(VD_LOG_BUFFER, VD_LOG_BUFFER_SIZE, fmt, __VA_ARGS__); \
+        VD_LOG_CALL(verbosity, VD_LOG_BUFFER); \
+    } while (0)
+
+#define VD_LOG_ADD_NEWLINE(s)  s "\n"
+#define VD_ERRF(fmt, ...)      VD_LOG_IMPL(VD_LOG_VERBOSITY_ERROR,   VD_LOG_ADD_NEWLINE(fmt), __VA_ARGS__)
+#define VD_WRNF(fmt, ...)      VD_LOG_IMPL(VD_LOG_VERBOSITY_WARNING, VD_LOG_ADD_NEWLINE(fmt), __VA_ARGS__)
+#define VD_LOGF(fmt, ...)      VD_LOG_IMPL(VD_LOG_VERBOSITY_LOG,     VD_LOG_ADD_NEWLINE(fmt), __VA_ARGS__)
+#define VD_DBGF(fmt, ...)      VD_LOG_IMPL(VD_LOG_VERBOSITY_DEBUG,   VD_LOG_ADD_NEWLINE(fmt), __VA_ARGS__)
+
+#if VD_MACRO_ABBREVIATIONS
+#define ProcLog           VdProcLog
+#define ERRF(fmt, ...)    VD_ERRF(fmt, __VA_ARGS__)
+#define WRNF(fmt, ...)    VD_WRNF(fmt, __VA_ARGS__)
+#define LOGF(fmt, ...)    VD_LOGF(fmt, __VA_ARGS__)
+#define DBGF(fmt, ...)    VD_DBGF(fmt, __VA_ARGS__)
+#endif // VD_MACRO_ABBREVIATIONS
+
+VD_INLINE VdStr vd_log_verbosity_to_str(int verbosity);
+VD_INLINE VdStr vd_log_verbosity_to_str(int verbosity)
+{
+    VdStr                                        result = VD_LIT("ERR");
+    if (verbosity >= VD_LOG_VERBOSITY_WARNING) { result = VD_LIT("WRN"); }
+    if (verbosity >= VD_LOG_VERBOSITY_LOG)     { result = VD_LIT("LOG"); }
+    if (verbosity >= VD_LOG_VERBOSITY_DEBUG)   { result = VD_LIT("DBG"); }
+
+    return result;
+}
+
+/* ----THREAD CONTEXT------------------------------------------------------------------------------------------------ */
+#ifndef VD_CUSTOM_THREAD_CONTEXT
+#undef  VD_LOG_BUFFER_SIZE
+#define VD_LOG_BUFFER_SIZE               1024
+typedef struct {
+    HeapArena heap;
+    void      *usr;
+} ThreadCtx;
+
+VD_API void vd_ctx_setup_main_thread(size_t max_alloc_size);
+VD_API void vd_ctx_alloc_for_thread(size_t max_alloc_size);
+VD_API void thread_ctx_init(void);
+VD_API ThreadCtx *thread_ctx_get(void);
+
+#define SCOPE_I_ID2(id, line) id##line
+#define SCOPE_I_ID(line) SCOPE_I_ID2(__i__, line)
+#define SCOPE_S_ID(line) SCOPE_I_ID2(__s__, line)
+#define WITH_ARENA_(line, arena) for (HeapArenaSave SCOPE_S_ID(line) = heap_arena_save(arena), *SCOPE_I_ID(line) = (HeapArenaSave*)1; SCOPE_I_ID(line); heap_arena_restore(arena, SCOPE_S_ID(line)), SCOPE_I_ID(line) = 0)
+#define WITH_ARENA(arena) WITH_ARENA_(__COUNTER__,arena)
+
+typedef struct {
+    VdScratch scratch;
+    VdProcLog *log;
+    char      log_buffer[VD_LOG_BUFFER_SIZE];
+} VdThreadContext;
+
+#define VD_THREAD_CONTEXT_TYPE          VdThreadContext
+#define VD_THREAD_CONTEXT_VARNAME       Thread_Context
+#define VD_THREAD_CONTEXT_SCRATCH(tc)   (&tc->scratch)
+
+#endif // !VD_CUSTOM_THREAD_CONTEXT
+
+#define VD_THREAD_CONTEXT_GET()         (VD_THREAD_CONTEXT_VARNAME)
+#define VD_THREAD_CONTEXT_SCRATCH_OFF() VD_OFFSET_OF(VdThreadContext, scratch)
+#define VD_THREAD_CONTEXT_LOG_OFF()     VD_OFFSET_OF(VdThreadContext, log)
+#define VD_THREAD_CONTEXT_SET(value)    (VD_THREAD_CONTEXT_VARNAME = value)
+extern VD_THREAD_CONTEXT_TYPE * VD_THREAD_CONTEXT_VARNAME;
+
+#define VD_SCRATCH()                    VD_THREAD_CONTEXT_SCRATCH(VD_THREAD_CONTEXT_GET())
+#define VD_GET_SCRATCH_ARENA()          vd_scratch_get_arena(VD_SCRATCH())
+#define VD_RETURN_SCRATCH_ARENA(a)      vd_scratch_return_arena(VD_SCRATCH(), a)
+
+#ifndef VD_CUSTOM_LOG
+#undef  VD_LOG_BUFFER
+#define VD_LOG_BUFFER                   (VD_THREAD_CONTEXT_GET()->log_buffer)
+#undef  VD_LOG_CALL
+#define VD_LOG_CALL(verbosity, message) (VD_THREAD_CONTEXT_GET()->log(verbosity, message))
+#endif // !VD_CUSTOM_LOG
+
+#ifndef VD_ENABLE_SCRATCH_USE_IN_LIBRARY
+#define VD_ENABLE_SCRATCH_USE_IN_LIBRARY 0
+#endif // !VD_ENABLE_SCRATCH_USE_IN_LIBRARY
+
+#if VD_MACRO_ABBREVIATIONS
+#define ThreadContext VdThreadContext
+#endif // VD_MACRO_ABBREVIATIONS
+
+/* ----TESTING------------------------------------------------------------------------------------------------------- */
+#ifndef VD_INCLUDE_TESTS
+#define VD_INCLUDE_TESTS 0
+#endif // VD_INCLUDE_TESTS
+
+#if VD_INCLUDE_TESTS && !VD_HOST_COMPILER_UNKNOWN
+extern VdArena *Test_Arena;
+
+typedef struct __VD_TestResult {
+    int         ok;
+    const char  *err;
+} VdTestResult;
+
+#define VD_PROC_TEST(name) VdTestResult name(void)
+typedef VD_PROC_TEST(VdProcTest);
+
+typedef struct __VD_TestEntry {
+    const char   *name;
+    VdProcTest *test;
+} VdTestEntry;
+
+#define VD_TEST_PROC_ID(counter)        VD_STRING_JOIN2(vd_test_proc_, counter)
+#define VD_TEST_ENTRY_ID(counter)       VD_STRING_JOIN2(vd_test_entry_, counter)
+#define VD_TEST_REG_ID(counter)         VD_STRING_JOIN2(vd_test_reg_, counter)
+#define VD_TEST_REG_PTR_ID(counter)     VD_STRING_JOIN2(vd_test_reg_ptr_, counter)
+
+#if VD_HOST_COMPILER_MSVC
+#pragma section(".CRT$XCU", read)
+
+#if VD_CPP
+#   define VD_TEST_LINKAGE static
+#   define VD_TEST_LINK_PTR extern "C"
+#   define VD_TEST_REG_LINK extern "C"
+#else
+#   define VD_TEST_LINK_PTR
+#   define VD_TEST_LINKAGE static
+#   define VD_TEST_REG_LINK static
+#endif // VD_CPP
+
+#define VD_TEST_IMPL(string, counter) \
+    VD_TEST_LINKAGE VD_PROC_TEST(VD_TEST_PROC_ID(counter)); \
+    VD_TEST_REG_LINK void VD_TEST_REG_ID(counter)(void); \
+    VD_TEST_LINK_PTR __declspec(allocate(".CRT$XCU")) void (*VD_TEST_REG_PTR_ID(counter))(void) = VD_TEST_REG_ID(counter); \
+    __pragma(comment(linker, "/include:"  VD_STRINGIFY(VD_TEST_REG_PTR_ID(counter)))) \
+    VD_TEST_REG_LINK void VD_TEST_REG_ID(counter)(void) {\
+        vd__test_register(string, VD_TEST_PROC_ID(counter)); \
+    } \
+    VD_TEST_LINKAGE VD_PROC_TEST(VD_TEST_PROC_ID(counter))
+
+#elif VD_HOST_COMPILER_CLANG
+#define VD_TEST_IMPL(string, counter) \
+    static VD_PROC_TEST(VD_TEST_PROC_ID(counter)); \
+    static void __attribute__((constructor)) VD_TEST_REG_ID(counter)() { \
+        vd__test_register(string, VD_TEST_PROC_ID(counter)); \
+    } \
+    static VD_PROC_TEST(VD_TEST_PROC_ID(counter))
+
+#endif  // VD_HOST_COMPILER_MSVC, VD_HOST_COMPILER_CLANG
+
+extern VdTestEntry *Vd__Test_Entries;
+extern size_t     Vd__Cap_Test_Entries;
+extern uint32_t       Vd__Len_Test_Entries;
+
+static VD_INLINE void vd__test_register(const char *name, VdProcTest *proc)
+{
+    if ((Vd__Len_Test_Entries + 1) > Vd__Cap_Test_Entries) {
+        size_t old_cap = Vd__Cap_Test_Entries;
+        size_t new_cap;
+        if (old_cap == 0) {
+            new_cap = 64;
+        } else {
+            new_cap = 2 * old_cap;
+        }
+
+        Vd__Test_Entries = (VdTestEntry*)VD_REALLOC(Vd__Test_Entries, old_cap * sizeof(VdTestEntry), new_cap * sizeof(VdTestEntry));
+        Vd__Cap_Test_Entries = new_cap;
+    }
+
+    VdTestEntry* e = &Vd__Test_Entries[Vd__Len_Test_Entries++];
+    e->name = name;
+    e->test = proc;
+}
+
+#define VD_TEST(string) VD_TEST_IMPL(string, __COUNTER__)
+
+typedef struct {
+    VdProcLog *log_impl;
+    char        buf[1024];
+} VdTestContext;
+
+extern VdTestContext *Vd__Global_Test_Context;
+
+#define VD_TEST_LOG_IMPL(fmt, ...) \
+        snprintf(Vd__Global_Test_Context->buf, 1024, fmt "\n", ## __VA_ARGS__); \
+        Vd__Global_Test_Context->log_impl(VD_LOG_VERBOSITY_LOG, Vd__Global_Test_Context->buf); \
+
+#define VD_TEST_LOG(fmt, ...) VD_TEST_LOG_IMPL(fmt, ## __VA_ARGS__)
+
+extern void vd_test_set_context(VdTestContext *context);
+extern void vd_test_get_tests(VdTestEntry **out_entries, uint32_t *out_num_entries);
+extern void vd_test_main(void);
+
+#ifndef VD_TEST_ERR_CODE
+#   define VD_TEST_ERR_CODE
+#endif // !VD_TEST_ERR_CODE
+
+#define VD_TEST_ERR(msg)          do { VdTestResult __r; __r.ok = 0; __r.err = msg; VD_TEST_ERR_CODE return __r; } while(0)
+#define VD_TEST_OK()              do { VdTestResult __r; __r.ok = 1; __r.err = 0;   return __r; } while(0)
+#define VD_TEST_ASSERT(desc, x)   do { if (!(x))       { VD_TEST_ERR(desc "\nExpected: " #x " would be true");  } } while (0)
+#define VD_TEST_TRUE(desc, x)     do { if (!(x))       { VD_TEST_ERR(desc "\nExpected: " #x " == true");        } } while (0)
+#define VD_TEST_FALSE(desc, x)    do { if ( (x))       { VD_TEST_ERR(desc "\nExpected: " #x " == false");       } } while (0)
+#define VD_TEST_EQ(desc, x, y)    do { if ((x) != (y)) { VD_TEST_ERR(desc "\nExpected: " #x " == " #y );        } } while (0)
+#define VD_TEST_NONZERO(desc, x)  do { if ((x) == 0)   { VD_TEST_ERR(desc "\nExpected: " #x " to be non-zero"); } } while (0)
+#define VD_TEST_NEQ(desc, x, y)   do { if ((x) == (y)) { VD_TEST_ERR(desc "\nExpected: " #x " != " #y );        } } while (0)
+#define VD_TEST_LT(desc, x, y)    do { if ((x) >= (y)) { VD_TEST_ERR(desc "\nExpected: " #x " < " #y );         } } while (0)
+#define VD_TEST_GT(desc, x, y)    do { if ((x) <= (y)) { VD_TEST_ERR(desc "\nExpected: " #x " > " #y );         } } while (0)
+#define VD_TEST_LE(desc, x, y)    do { if ((x) >  (y)) { VD_TEST_ERR(desc "\nExpected: " #x " <= " #y );        } } while (0) 
+#define VD_TEST_GE(desc, x, y)    do { if ((x) <  (y)) { VD_TEST_ERR(desc "\nExpected: " #x " >= " #y );        } } while (0) 
+
+#if VD_MACRO_ABBREVIATIONS
+#define ProcTest                                     VdProcTest
+#define TestEntry                                    VdTestEntry
+#define TestResult                                   VdTestResult
+#define TestContext                                  VdTestContext
+#define test_set_context(context)                    vd_test_set_context(context)
+#define test_get_tests(out_entries, out_num_entries) vd_test_get_tests(out_entries, out_num_entries)
+#define test_main()                                  vd_test_main()
+#endif // VD_MACRO_ABBREVIATIONS
+#endif // VD_INCLUDE_TESTS && !VD_HOST_COMPILER_UNKNOWN
+
+/* ----INIT INFO----------------------------------------------------------------------------------------------------- */
+struct VdInitInfo {
+    unsigned int thread_id;
+    VdProcLog    *proc_log;
+    void         **thread_context_ptr;
+};
+
+#endif // !VD_H
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+/* ----IMPLEMENTATION------------------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+#ifdef VD_IMPL
+
+static VD_PROC_LOG(vd__default_log);
+
+VD_API void vd_init(VdInitInfo *info) {
+    void **thread_context_ptr = (void**)&VD_THREAD_CONTEXT_VARNAME;
+    if (info && info->thread_context_ptr) {
+        thread_context_ptr = info->thread_context_ptr;
+    }
+
+    size_t total_required_size = (VD_SCRATCH_PAGE_SIZE * VD_SCRATCH_PAGE_COUNT) +
+                                  sizeof(VdScratch) +
+                                  sizeof(VD_THREAD_CONTEXT_TYPE);
+
+    uintptr_t allocation = (uintptr_t)VD_MALLOC(total_required_size);
+    VD_MEMSET((void*)allocation, 0, total_required_size);
+
+    void *thread_context = (void*)allocation;
+    *thread_context_ptr = thread_context;
+    VdScratch *scratch = (VdScratch*)((uintptr_t)(thread_context) + VD_THREAD_CONTEXT_SCRATCH_OFF());
+    VdProcLog **proc_log = (VdProcLog**)((uintptr_t)(thread_context) + VD_THREAD_CONTEXT_LOG_OFF());
+    *proc_log = vd__default_log;
+
+    allocation += sizeof(VD_THREAD_CONTEXT_TYPE);
+
+    for (size_t i = 0; i < VD_SCRATCH_PAGE_COUNT; ++i)
+    {
+        void *a = (void*)allocation;
+        vd_arena_init(&scratch->arenas[i], a, VD_SCRATCH_PAGE_SIZE);
+        allocation += VD_SCRATCH_PAGE_SIZE;
+    }
+}
+
+#if VD_USE_CRT
+#include <stdio.h>
+#endif
+
+static VD_PROC_LOG(vd__default_log)
+{
+    VD_UNUSED(string);
+
+    VdStr verbosity_str = vd_log_verbosity_to_str(verbosity);
+    (void)verbosity_str;
+
+#if VD_USE_CRT
+    printf("[%.*s]: %s", VD_STR_EXPAND(verbosity_str), string);
+#endif
+}
+
+/* ----TIMING IMPL--------------------------------------------------------------------------------------------------- */
+#if VD_PLATFORM_WINDOWS
+
+#if VD_CPP
+extern "C" {
+#endif // VD_CPP
+
+#pragma comment(linker, "/alternatename:VdQueryPerformanceCounter=QueryPerformanceCounter")
+extern int VdQueryPerformanceCounter(int64_t *perf_count);
+#pragma comment(linker, "/alternatename:VdQueryPerformanceFrequency=QueryPerformanceFrequency")
+extern int VdQueryPerformanceFrequency(int64_t *perf_freq);
+
+#if VD_CPP
+}
+#endif // VD_CPP
+
+static int64_t Vd__Windows_Performance_Frequency = 0;
+
+VdHiTime vd_hitime_get(void)
+{
+    uint64_t counter;
+    VdQueryPerformanceCounter((int64_t*)&counter);
+
+    VdHiTime result = { counter };
+    return result;
+}
+
+VdHiTime vd_hitime_sub(VdHiTime a, VdHiTime b)
+{
+    VdHiTime result = { a.performance_counter - b.performance_counter };
+    return result;
+}
+
+uint64_t vd_hitime_ns(VdHiTime time_spec)
+{
+    // @todo(mdodis): Windows_Performance_Frequency on startup
+    if (Vd__Windows_Performance_Frequency == 0) {
+        VdQueryPerformanceFrequency((int64_t*)&Vd__Windows_Performance_Frequency);
+    }
+
+    uint64_t q  =  time_spec.performance_counter / Vd__Windows_Performance_Frequency;
+    uint64_t r  =  time_spec.performance_counter % Vd__Windows_Performance_Frequency;
+    uint64_t ns =  q * 1000000000ULL;
+    ns         += (r * 1000000000ULL) / Vd__Windows_Performance_Frequency;
+    return ns;
+}
+
+double vd_hitime_fms64(VdHiTime time_spec)
+{
+    return ((double)vd_hitime_ns(time_spec) / 1000000.0);
+}
+
+uint64_t vd_hitime_ms(VdHiTime time_spec)
+{
+    // @todo(mdodis): Windows_Performance_Frequency on startup
+    if (Vd__Windows_Performance_Frequency == 0) {
+        VdQueryPerformanceFrequency((int64_t*)&Vd__Windows_Performance_Frequency);
+    }
+
+    return (uint64_t)(((time_spec.performance_counter) * 1000) / Vd__Windows_Performance_Frequency);
+}
+
+#elif VD_PLATFORM_MACOS
+#include <mach/mach_time.h>
+
+static int                     Vd_Mach_Time_Base_Initialized = VD_FALSE;
+static mach_timebase_info_data_t Vd_Mach_Time_Base;
+
+VdHiTime vd_hitime_get(void)
+{
+    uint64_t result = mach_absolute_time();
+    return (VdHiTime) {result};
+}
+
+VdHiTime vd_hitime_sub(VdHiTime a, VdHiTime b)
+{
+    VdHiTime result = {a.time - b.time};
+    return result;
+}
+
+uint64_t vd_hitime_ns(VdHiTime time_spec)
+{
+    if (!Vd_Mach_Time_Base_Initialized) {
+        Vd_Mach_Time_Base_Initialized = VD_TRUE;
+        mach_timebase_info(&Vd_Mach_Time_Base);
+    }
+
+    uint64_t ns = time_spec.time * Vd_Mach_Time_Base.numer / Vd_Mach_Time_Base.denom;
+    return ns;
+}
+
+double vd_hitime_fms64(VdHiTime time_spec)
+{
+    return ((double)vd_hitime_ns(time_spec) / 1000000.0);
+}
+
+uint64_t vd_hitime_ms(VdHiTime time_spec)
+{
+    return (uint64_t)vd_hitime_fms64(time_spec);
+}
+
+#elif VD_PLATFORM_LINUX
+#include <time.h>
+
+VdHiTime vd_hitime_get(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    VdHiTime result = { ts };
+    return result;
+}
+
+VdHiTime vd_hitime_sub(VdHiTime a, VdHiTime b)
+{
+    VdHiTime result;
+    int64_t nsec_diff = a.time.tv_nsec - b.time.tv_nsec;
+    int64_t sec_diff  = a.time.tv_sec  - b.time.tv_sec;
+    if (nsec_diff < 0) {
+        result.time.tv_sec = sec_diff - 1;
+        result.time.tv_nsec = 1000000000 + nsec_diff;
+    } else {
+        result.time.tv_nsec = nsec_diff;
+        result.time.tv_sec = sec_diff;
+    }
+
+    return result;
+}
+
+uint64_t vd_hitime_ns(VdHiTime time_spec)
+{
+    return (uint64_t)time_spec.time.tv_nsec;
+}
+
+double vd_hitime_fms64(VdHiTime time_spec)
+{
+    return ((double)vd_hitime_ns(time_spec) / 1000000.0);
+}
+
+uint64_t vd_hitime_ms(VdHiTime time_spec)
+{
+    return (uint64_t)vd_hitime_fms64(time_spec);
+}
+#else
+#error "HiTime not supported on this platform!"
+#endif // VD_PLATFORM_WINDOWS
+
+/* ----VIRTUAL MEMORY IMPL------------------------------------------------------------------------------------------- */
+#if VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+#if !VD_VM_CUSTOM
+
+#if VD_PLATFORM_MACOS
+#include <sys/mman.h>
+#include <errno.h>
+#include <unistd.h>
+
+size_t vd_vm_get_page_size(void)
+{
+    return _SC_PAGE_SIZE;
+}
+
+void *vd_vm_reserve(size_t len)
+{
+    void *result = mmap(0, len, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (result == MAP_FAILED) {
+        fprintf(stderr, "vm_decommit failed: %d\n", errno);
+        VD_ASSERT(VD_FALSE);
+    }
+    return result;
+}
+
+void *vd_vm_commit(void *addr, size_t len)
+{
+    void *result = mmap(addr, len, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE | MAP_ANON, -1, 0);
+    if (result == MAP_FAILED) {
+        fprintf(stderr, "vm_decommit failed: %d\n", errno);
+        VD_ASSERT(VD_FALSE);
+    }
+    return result;
+}
+
+void *vd_vm_decommit(void *addr, size_t len)
+{
+    void *result = mmap(addr, len, PROT_NONE, MAP_FIXED | MAP_PRIVATE | MAP_ANON, -1, 0);
+    if (result == MAP_FAILED) {
+        fprintf(stderr, "vm_decommit failed: %d\n", errno);
+        VD_ASSERT(VD_FALSE);
+    }
+    return result;
+}
+
+void vd_vm_release(void *addr, size_t len)
+{
+    munmap(addr, len);
+}
+
+#elif VD_PLATFORM_LINUX
+#include <sys/mman.h>
+#include <errno.h>
+#include <unistd.h>
+
+size_t vd_vm_get_page_size(void)
+{
+    return _SC_PAGE_SIZE;
+}
+
+void *vd_vm_reserve(size_t len)
+{
+    void *result = mmap(0, len, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (result == MAP_FAILED) {
+        fprintf(stderr, "vm_decommit failed: %d\n", errno);
+        VD_ASSERT(VD_FALSE);
+    }
+    return result;
+}
+
+void *vd_vm_commit(void *addr, size_t len)
+{
+    void *result = mmap(addr, len, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE | MAP_ANON, -1, 0);
+    if (result == MAP_FAILED) {
+        fprintf(stderr, "vm_decommit failed: %d\n", errno);
+        VD_ASSERT(VD_FALSE);
+    }
+    return result;
+}
+
+void *vd_vm_decommit(void *addr, size_t len)
+{
+    void *result = mmap(addr, len, PROT_NONE, MAP_FIXED | MAP_PRIVATE | MAP_ANON, -1, 0);
+    if (result == MAP_FAILED) {
+        fprintf(stderr, "vm_decommit failed: %d\n", errno);
+        VD_ASSERT(VD_FALSE);
+    }
+    return result;
+}
+
+void vd_vm_release(void *addr, size_t len)
+{
+    munmap(addr, len);
+}
+
+#elif VD_PLATFORM_WINDOWS
+#pragma pack(push, 1)
+typedef struct Vd_SYSTEM_INFO {
+  union {
+    uint32_t dwOemId;
+    struct {
+      uint16_t wProcessorArchitecture;
+      uint16_t wReserved;
+    } DUMMYSTRUCTNAME;
+  } DUMMYUNIONNAME;
+  uint32_t     dwPageSize;
+  void         *lpMinimumApplicationAddress;
+  void         *lpMaximumApplicationAddress;
+  uint32_t     *dwActiveProcessorMask;
+  uint32_t     dwNumberOfProcessors;
+  uint32_t     dwProcessorType;
+  uint32_t     dwAllocationGranularity;
+  uint16_t     wProcessorLevel;
+  uint16_t     wProcessorRevision;
+} VdSYSTEM_INFO;
+#pragma pack(pop)
+
+#if VD_CPP
+extern "C" {
+#endif // VD_CPP
+
+#pragma comment(linker, "/alternatename:VdGetSystemInfo=GetSystemInfo")
+extern void VdGetSystemInfo(VdSYSTEM_INFO *lpSystemInfo);
+#pragma comment(linker, "/alternatename:VdVirtualAlloc=VirtualAlloc")
+extern void * VdVirtualAlloc(void *lpAddress, size_t dwSize, uint32_t flAllocationType, uint32_t flProtect);
+#pragma comment(linker, "/alternatename:VdVirtualFree=VirtualFree")
+extern int VdVirtualFree(void *lpAddress, size_t dwSize, uint32_t dwFreeType);
+
+#if VD_CPP
+}
+#endif // VD_CPP
+
+enum {
+    VD__WIN32_MEM_COMMIT = 0x00001000,
+    VD__WIN32_MEM_RESERVE = 0x00002000,
+    VD__WIN32_MEM_DECOMMIT = 0x00004000,
+    VD__WIN32_PAGE_NOACCESS = 0x01,
+    VD__WIN32_PAGE_READONLY = 0x02,
+    VD__WIN32_PAGE_READWRITE = 0x04,
+    VD__WIN32_PAGE_WRITECOPY = 0x08,
+    VD__WIN32_PAGE_EXECUTE = 0x10,
+    VD__WIN32_PAGE_EXECUTE_READ = 0x20,
+    VD__WIN32_PAGE_EXECUTE_READWRITE = 0x40,
+    VD__WIN32_PAGE_EXECUTE_WRITECOPY = 0x80,
+    VD__WIN32_PAGE_GUARD = 0x100,
+    VD__WIN32_MEM_RELEASE = 0x00008000,
+    VD__WIN32_MEM_FREE = 0x00010000,
+};
+
+size_t vd_vm_get_page_size(void)
+{
+    VdSYSTEM_INFO system_info;
+    VdGetSystemInfo(&system_info);
+    return system_info.dwPageSize;
+}
+
+void *vd_vm_reserve(size_t len)
+{
+    return VdVirtualAlloc(0, len, VD__WIN32_MEM_RESERVE, VD__WIN32_PAGE_READWRITE);
+}
+
+void *vd_vm_commit(void *addr, size_t len)
+{
+    return VdVirtualAlloc(addr, len, VD__WIN32_MEM_COMMIT, VD__WIN32_PAGE_READWRITE);
+}
+
+void *vd_vm_decommit(void *addr, size_t len)
+{
+    return VdVirtualFree(addr, len, VD__WIN32_MEM_DECOMMIT) ? 0 : addr;
+}
+
+void vd_vm_release(void *addr, size_t len)
+{
+    VD_UNUSED(len);
+
+    VdVirtualFree(addr, 0, VD__WIN32_MEM_RELEASE);
+}
+#endif // VD_PLATFORM_MACOS, VD_PLATFORM_WINDOWS
+
+#endif // !VD_VM_CUSTOM
+#endif // VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+
+/* ----THREADS IMPL-------------------------------------------------------------------------------------------------- */
+#if VD_PLATFORM_WINDOWS
+
+#if VD_CPP
+extern "C" {
+#endif // VD_CPP
+
+#pragma comment(linker, "/alternatename:VdCreateThread=CreateThread")
+extern void *VdCreateThread(void *lpThreadAttributes, size_t dwStackSize, uint32_t(*lpStartAddress)(void*), void *lpParameter, uint32_t dwCreationFlags, uint32_t *lpThreadId);
+#pragma comment(linker, "/alternatename:VdWaitForSingleObject=WaitForSingleObject")
+extern uint32_t VdWaitForSingleObject(void *hHandle, uint32_t dwMilliseconds);
+#pragma comment(linker, "/alternatename:VdSwitchToThread=SwitchToThread")
+extern int VdSwitchToThread();
+#pragma comment(linker, "/alternatename:VdCreateSemaphoreA=CreateSemaphoreA")
+extern void *VdCreateSemaphoreA(void *lpSemaphoreAttributes, int lInitialCount, int lMaximumCount, const char *lpName);
+#pragma comment(linker, "/alternatename:VdReleaseSemaphore=ReleaseSemaphore")
+extern int VdReleaseSemaphore(void *hSemaphore, int lReleaseCount, int lpPreviousCount);
+#pragma comment(linker, "/alternatename:VdCloseHandle=CloseHandle")
+extern int VdCloseHandle(void *hObject);
+#pragma comment(linker, "/alternatename:VdSleep=Sleep")
+extern void VdSleep(uint32_t dwMilliseconds);
+#pragma comment(linker, "/alternatename:VdTlsAlloc=TlsAlloc")
+extern uint32_t VdTlsAlloc();
+#pragma comment(linker, "/alternatename:VdTlsGetValue=TlsGetValue")
+extern void* VdTlsGetValue(uint32_t);
+#pragma comment(linker, "/alternatename:VdTlsSetValue=TlsSetValue")
+extern int VdTlsSetValue(uint32_t, void*);
+
+#if VD_CPP
+}
+#endif // VD_CPP
+
+#define VD__WIN32_INFINITE    0xFFFFFFFFu
+#define VD__WIN32_WAIT_FAILED 0xFFFFFFFFu
+
+VD_API uint32_t vd_tls_alloc(void)
+{
+    return VdTlsAlloc();
+}
+
+VD_API void vd_tls_set(uint32_t id, void *p)
+{
+    VdTlsSetValue(id, p);
+}
+
+VD_API void *vd_tls_get(uint32_t id)
+{
+    return VdTlsGetValue(id);
+}
+
+VdThread vd_thread_make(VdThreadProc *proc, void *param)
+{
+    uint32_t tid;
+    void *h = VdCreateThread(0, 0, proc, param, 0, &tid);
+    VdThread result;
+    result.handle = h;
+    result.id = tid;
+    return result;
+}
+
+int vd_thread_join(VdThread thread)
+{
+    // @todo(mdodis): wait time, result
+    return (int)VdWaitForSingleObject((void*)thread.handle, VD__WIN32_INFINITE);
+}
+
+void vd_thread_sleep(uint32_t ms)
+{
+    VdSleep(ms);
+}
+
+void vd_thread_yield(void)
+{
+    VdSwitchToThread();
+}
+
+VdSemaphore vd_semaphore_make(int initial_count, int max_count)
+{
+    void *h = VdCreateSemaphoreA(NULL, initial_count, max_count, NULL);
+    VdSemaphore result;
+    result.handle = h;
+    return result;
+}
+
+void vd_semaphore_inc(VdSemaphore semaphore)
+{
+    VdReleaseSemaphore(semaphore.handle, 1, 0);
+}
+
+void vd_semaphore_dec(VdSemaphore semaphore)
+{
+    // @todo(mdodis): timeout, result
+    uint32_t rc = VdWaitForSingleObject(semaphore.handle, VD__WIN32_INFINITE);
+    (void)rc;
+}
+
+void vd_semaphore_free(VdSemaphore semaphore)
+{
+    VdCloseHandle(semaphore.handle);
+}
+
+#endif // VD_PLATFORM_WINDOWS
+/* ----SYSTEM ALLOCATOR IMPL----------------------------------------------------------------------------------------- */
+#define VD_SYSTEM_HEAP_RESERVE_PAGE_COUNT 32000
+
+static VdSystemHeap Vd_System_Heap_Global = {0};
+
+VD_API VdSystemHeap *vd_system_heap_global(void)
+{
+    return &Vd_System_Heap_Global;
+}
+
+VD_API void vd_system_heap_set_reserve_page_count(VdSystemHeap *h, size_t page_count)
+{
+    VD_ASSERT(h->buf == 0 && "Heap has already been allocated!");
+    if (h->page_size == 0) {
+        h->page_size = vd_vm_get_page_size();
+    }
+
+    h->reserved = h->page_size * page_count;
+}
+
+VD_API void *vd_system_heap_alloc(VdSystemHeap *h, size_t size, size_t align)
+{
+    if (h->buf == 0) {
+        if (h->page_size == 0) {
+            h->page_size = vd_vm_get_page_size();
+        }
+
+        if (h->reserved == 0) {
+            h->reserved = h->page_size * VD_SYSTEM_HEAP_RESERVE_PAGE_COUNT;
+        }
+
+        h->buf = (uintptr_t)vd_vm_reserve(h->reserved);
+    }
+
+    // PAGE  0 |---------|
+    //         [+++++++++|
+    //         |+++++++++|
+    //         |+++++++++|
+    //         |+++++]   | -> h->buf + h->offset (curr_ptr)
+    // PAGE  1 |---------| -> h->buf + h->committed (now)
+    //         |*        | -> desired
+    //         |         |
+    //         |         |
+    //         |         |
+    // PAGE  2 |---------|
+    //         |         |
+    //         |  *      | -> desired_end
+    //         |         |
+    //         |         |
+    // PAGE  3 |---------| -> h->buf + h->reserved
+
+    uintptr_t now      = (uintptr_t)h->buf + (uintptr_t)h->committed;
+    uintptr_t end      = (uintptr_t)h->buf + (uintptr_t)h->reserved;
+
+    uintptr_t curr_ptr    = (uintptr_t)h->buf + (uintptr_t)h->offset;
+    uintptr_t desired     = vd_align_forward(curr_ptr, align);
+    uintptr_t desired_end = desired + size;
+    uintptr_t offset   = desired - (uintptr_t)h->buf;
+
+    if (desired_end > end) {
+        return 0;
+    }
+
+    if (desired_end <= now) {
+        // Allocation fits inside the page(s)
+        // no need to commit more
+        h->offset = offset + size;
+
+        return (void*)desired;
+    } else {
+        // Need to allocate n pages
+        size_t num_pages = (desired_end - now) / h->page_size;
+        num_pages += ((desired_end - now) % h->page_size) != 0 ? 1 : 0;
+
+        VD_ASSERT(h->committed % h->page_size == 0);
+        void *cmt = vd_vm_commit((void*)(now), num_pages * h->page_size);
+        VD_ASSERT(cmt != 0);
+        if (cmt) {
+            h->committed += num_pages * h->page_size;
+            h->offset = offset + size;
+        }
+
+        return (void*)desired;
+    }
+}
+
+VD_API void vd_system_heap_empty(VdSystemHeap *h)
+{
+    h->offset = 0;
+}
+
+static HeapArenaEntry *heap_arena_entry_make(size_t page_count)
+{
+    VdSystemHeap heap = {0};
+    vd_system_heap_set_reserve_page_count(&heap, page_count);
+    HeapArenaEntry *result = (HeapArenaEntry*)vd_system_heap_alloc(&heap, sizeof(HeapArenaEntry), 1);
+    result->next = 0;
+    result->heap = heap;
+    return result;
+}
+
+VD_API HeapArena heap_arena_make(size_t reserve_size)
+{
+    size_t page_size = vd_vm_get_page_size();
+    size_t page_count = (reserve_size / page_size) + 1;
+
+    HeapArenaEntry *first_entry = heap_arena_entry_make(page_count);
+    HeapArena result;
+    result.first = first_entry;
+    result.last = first_entry;
+    result.page_count = page_count;
+    return result;
+}
+
+VD_API void *heap_arena_alloc(HeapArena *arena, size_t size)
+{
+    void *result = vd_system_heap_alloc(&arena->last->heap, size, 1);
+    if (result == 0) {
+        if (!arena->last->next) {
+            arena->last->next = heap_arena_entry_make(arena->page_count);
+        }
+        arena->last = arena->last->next;
+
+        result = vd_system_heap_alloc(&arena->last->heap, size, 1);
+    }
+
+    return result;
+}
+
+VD_API HeapArenaSave heap_arena_save(HeapArena *arena)
+{
+    HeapArenaSave result;
+    result.last = arena->last;    
+    result.offset = arena->last->heap.offset;
+    return result;
+}
+
+VD_API void heap_arena_restore(HeapArena *arena, HeapArenaSave save)
+{
+    HeapArenaEntry *cur = save.last;
+    arena->last = save.last;
+    cur->heap.offset = save.offset;
+
+    cur = cur->next;
+    while (cur) {
+        cur->heap.offset = 0;
+        cur = cur->next;
+    }
+}
+
+/* ----ARENA IMPL---------------------------------------------------------------------------------------------------- */
+void vd_arena_init(VdArena *a, void *buf, size_t len)
+{
+    a->buf = (uint8_t*)buf;
+    a->buf_len = len;
+    a->curr_offset = 0;
+    a->prev_offset = 0;
+    a->flags = 0;
+}
+
+void *vd_arena_alloc_align(VdArena *a, size_t size, size_t align)
+{
+    uintptr_t curr_ptr = (uintptr_t)a->buf + (uintptr_t)a->curr_offset;
+    uintptr_t offset = vd_align_forward(curr_ptr, align);
+    offset -= (uintptr_t)a->buf;
+
+    if (offset + size <= a->buf_len) {
+        void *ptr = 0;
+        if (a->flags & VD_ARENA_FLAGS_USE_MALLOC) {
+            ptr = VD_REALLOC(NULL, 0, size);
+        } else {
+            ptr = &a->buf[offset];
+            a->prev_offset = offset;
+            a->curr_offset = offset + size;
+        }
+
+        VD_MEMSET(ptr, 0, size);
+        return ptr;
+    }
+
+    VD_DEBUG_BREAK();
+    return 0;
+}
+
+void *vd_arena_resize_align(VdArena *a, void *old_memory, size_t old_size, size_t new_size, size_t align)
+{
+    VD_ASSERT(vd_is_power_of_two(align));
+
+    uint8_t* old_mem = (uint8_t*)old_memory;
+
+    if (old_mem == 0 || old_size == 0) {
+        return vd_arena_alloc_align(a, new_size, align);
+    } else if (a->buf <= old_mem && old_mem < a->buf + a->buf_len) {
+        if (a->buf + a->prev_offset == old_mem) {
+            a->curr_offset = a->prev_offset + new_size;
+            if (new_size > old_size) {
+                VD_MEMSET(&a->buf[a->curr_offset], 0, new_size - old_size);
+            }
+
+            return old_memory;
+        } else {
+            void *new_memory = vd_arena_alloc_align(a, new_size, align);
+            size_t copy_size = old_size < new_size ? old_size : new_size;
+
+            VD_MEMMOVE(new_memory, old_memory, copy_size);
+            return new_memory;
+        }
+    } else {
+        VD_DEBUG_BREAK();
+    }
+    return 0;
+}
+
+void vd_arena_clear(VdArena *a)
+{
+    VD_MEMSET(a->buf, 0, a->curr_offset);
+    a->curr_offset = 0;
+    a->prev_offset = 0;
+}
+
+int vd_arena_free(VdArena *a, void *memory, size_t size)
+{
+    VD_UNUSED(size);
+
+    uintptr_t last_ptr = (uintptr_t) (a->buf + a->prev_offset);
+    uintptr_t mptr     = (uintptr_t)memory;
+
+    if (mptr == last_ptr) {
+        a->curr_offset = a->prev_offset;
+        a->prev_offset = 0;
+        return VD_TRUE;
+    }
+
+    return VD_FALSE;
+}
+
+/* ----SCRATCH IMPL-------------------------------------------------------------------------------------------------- */
+void vd_scratch_init(VdScratch *scratch)
+{
+    for (size_t i = 0; i < VD_SCRATCH_PAGE_COUNT; ++i)
+    {
+        void *a = (void*)VD_MALLOC(VD_SCRATCH_PAGE_SIZE);
+        VD_MEMSET(a, 0, VD_SCRATCH_PAGE_SIZE);
+        vd_arena_init(&scratch->arenas[i], a, VD_SCRATCH_PAGE_SIZE);
+    }
+}
+
+static uint32_t Vd__Thread_Ctx_Idx = 0;
+
+VD_API void vd_ctx_setup_main_thread(size_t max_alloc_size)
+{
+    Vd__Thread_Ctx_Idx = vd_tls_alloc();
+    vd_ctx_alloc_for_thread(max_alloc_size);
+}
+
+VD_API void vd_ctx_alloc_for_thread(size_t max_alloc_size)
+{
+    HeapArena h = heap_arena_make(max_alloc_size);
+    ThreadCtx *ctx = (ThreadCtx*)heap_arena_alloc(&h, sizeof(ThreadCtx));
+    ctx->heap = h;
+    ctx->usr = 0;
+    vd_tls_set(Vd__Thread_Ctx_Idx, ctx);
+}
+
+VD_API ThreadCtx *thread_ctx_get(void)
+{
+    ThreadCtx *ctx = (ThreadCtx*)vd_tls_get(Vd__Thread_Ctx_Idx);
+    return ctx;
+}
+
+VdArena *vd_scratch_get_arena(VdScratch *scratch)
+{
+    VD_ASSERT(scratch->curr_arena < VD_SCRATCH_PAGE_COUNT);
+    return &scratch->arenas[scratch->curr_arena++];
+}
+
+void vd_scratch_return_arena(VdScratch *scratch, VdArena *arena)
+{
+    VD_ASSERT(scratch->curr_arena > 0);
+    scratch->curr_arena--;
+    VD_ASSERT(&scratch->arenas[scratch->curr_arena] == arena);
+
+    VD_MEMSET(scratch->arenas[scratch->curr_arena].buf, 0, scratch->arenas[scratch->curr_arena].buf_len);
+    scratch->arenas[scratch->curr_arena].curr_offset = 0;
+    scratch->arenas[scratch->curr_arena].prev_offset = 0;
+}
+
+/* ----THREAD CONTEXT IMPL------------------------------------------------------------------------------------------- */
+VD_THREAD_CONTEXT_TYPE * VD_THREAD_CONTEXT_VARNAME;
+
+/* ----PARSING IMPL-------------------------------------------------------------------------------------------------- */
+int vd_parse_u64(VdStr s, uint64_t *r)
+{
+    uint64_t result = 0;
+    size_t i = 0;
+    while (i < s.len && vd_is_ascii_digit(s.s[i])) {
+        result = result * 10 + (s.s[i] - '0');
+        i++;
+    } 
+
+    if (i != s.len) {
+        return VD_FALSE;
+    }
+
+    *r = result;
+
+    return VD_TRUE;
+}
+
+/* ----ARG IMPL------------------------------------------------------------------------------------------------------ */
+int vd__arg_advance(VdArg *arg) {
+    if ((arg->argi + 1) == arg->argc) {
+        return VD_FALSE;
+    } else {
+        arg->argi++;
+        arg->ci = 0;
+        return VD_TRUE;
+    }
+}
+
+#define VD_ARG_CHECK_NEXT(arg) do {                      \
+        if (arg->ci != 0) {                              \
+            if (vd_arg_at_end(arg)) return VD_FALSE;   \
+            if (!vd__arg_advance(arg)) return VD_FALSE; \
+        }                                                \
+    } while(0)
+
+VdArg vd_arg_new(int argc, char **argv)
+{
+    VdArg result = {0};
+    result.argc = argc;
+    result.argv = argv;
+    return result;
+}
+
+void vd_arg_skip_program_name(VdArg *arg)
+{
+   arg->argi++;
+   arg->ci = 0;
+}
+
+int vd_arg_at_end(VdArg *arg)
+{
+    return (arg->argi == arg->argc) ||
+           (arg->argi == (arg->argc - 1) &&
+            arg->argv[arg->argi][arg->ci] == 0);
+}
+
+void vd_arg_skip(VdArg *arg)
+{
+    arg->argi++;
+    arg->ci = 0;    
+}
+
+int vd_arg_get_name(VdArg *arg, VdStr *name)
+{
+    VD_ARG_CHECK_NEXT(arg);
+
+    if (arg->argv[arg->argi][arg->ci] != '-') {
+        return VD_FALSE;
+    }
+
+    arg->ci = 1;
+
+    VdStr result;
+    result.s = &arg->argv[arg->argi][1];
+    result.len = 0;
+
+    while (arg->argv[arg->argi][arg->ci] != 0) {
+        arg->ci++;
+        result.len++;
+    }
+
+    if (result.len == 0) {
+        return VD_FALSE;
+    }
+
+    *name = result;
+
+    return VD_TRUE;
+}
+
+int vd_arg_get_uint(VdArg *arg, uint64_t *i) {
+    VD_UNUSED(i);
+    VD_TODO();
+
+    VD_ARG_CHECK_NEXT(arg);
+
+    return VD_FALSE;
+}
+
+int vd_arg_get_str(VdArg *arg, VdStr *str) {
+    VD_ARG_CHECK_NEXT(arg);
+
+    VdStr result;
+    result.s = &arg->argv[arg->argi][0];
+    result.len = 0;
+
+    while (arg->argv[arg->argi][arg->ci] != 0) {
+        arg->ci++;
+        result.len++;
+    }
+
+    *str = result;
+    return VD_TRUE;
+}
+
+int vd_arg_expect_char(VdArg *arg, char c);
+
+#undef VD_ARG_CHECK_NEXT
+
+/* ----STRMAP IMPL--------------------------------------------------------------------------------------------------- */
+static int vd__strmap_check_key(VdStr check, Vd__StrmapBinPrefix *against) {
+    uint32_t prefix_len       = sizeof(against->key_prefix);    
+    uint32_t first_check_len  = prefix_len < (uint32_t)check.len ? prefix_len : (uint32_t)check.len;
+    uint32_t second_check_len = (uint32_t)check.len - prefix_len;
+
+    if (against->key_len != check.len) {
+        return VD_FALSE;
+    }
+
+    if (VD_MEMCMP(against->key_prefix, check.s, first_check_len)) {
+        return VD_FALSE;
+    }
+
+    return check.len < prefix_len
+        ? VD_TRUE
+        : (VD_MEMCMP(against->key_rest, check.s + prefix_len, second_check_len) == 0);
+}
+
+static void vd__strmap_emplace_key(void *map, Vd__StrmapBinPrefix *dst, char *src_key_prefix, char *src_key_rest, uint32_t src_key_len)
+{
+    uint32_t prefix_len     = sizeof(dst->key_prefix);
+    uint32_t first_copy_len = src_key_len > prefix_len ? prefix_len : src_key_len;
+
+    VD_MEMCPY(dst->key_prefix, src_key_prefix, first_copy_len);
+
+    uint32_t new_len = src_key_len;
+
+    if (src_key_len > prefix_len) {
+        src_key_len -= prefix_len;
+
+        // If the source key's length after the prefix doesn't fit in the array allocated for key_rest
+        // Or if the key_rest_cap is zero because no key_rest has been allocated, then resize it
+        if (src_key_len > dst->key_rest_cap) {
+
+            // Allocate an arena big enough so that statistically, we won't have to ever care about
+            // this again
+            dst->key_rest = (char*)vd_arena_alloc(VD_STRMAP_ARENAP(map), src_key_len * 2);
+            dst->key_rest_cap = src_key_len * 2;
+        }
+
+        // Copy the rest of the key
+        VD_MEMCPY(dst->key_rest, src_key_rest, src_key_len);
+    }
+
+    dst->key_len = new_len;
+}
+
+static void vd__strmap_copy_key(void *map, VdStr key, Vd__StrmapBinPrefix *bin)
+{
+    char *key_prefix_part = key.s;
+    char *key_rest_part = key.len > sizeof(bin->key_prefix) ? key.s + sizeof(bin->key_prefix) : 0;
+    vd__strmap_emplace_key(map, bin, key_prefix_part, key_rest_part, (uint32_t)key.len);
+}
+
+void* vd__strmap_init(VdArena *arena, uint32_t tsize, uint32_t cap, VdStrmapInitOptions *options)
+{
+    Vd__StrmapHeader *map;
+    const uint32_t bin_size = sizeof(Vd__StrmapBinPrefix) + tsize;
+
+    map = (Vd__StrmapHeader*)vd_arena_alloc(arena, sizeof(Vd__StrmapHeader) + bin_size * cap);
+
+    Vd__StrmapBinPrefix *bins = (Vd__StrmapBinPrefix*)(((uint8_t*)map) + sizeof(Vd__StrmapHeader));
+
+    float address_scale = 0.863f;
+    if (options != 0) address_scale = options->address_scale;
+
+    map->cap_total    = cap;
+    map->cap          = (uint32_t) (((float)cap) * address_scale);
+    map->taken        = 0;
+    map->tsize        = tsize;
+    map->arena        = arena;
+
+    if ((options != 0) && (options->average_key_len > sizeof(((Vd__StrmapBinPrefix*)0)->key_prefix))) {
+        for (uint32_t i = 0; i < map->cap_total; ++i) {
+            bins[i].key_rest = (char*)vd_arena_alloc(arena, options->average_key_len);
+            VD_ASSERT(bins[i].key_rest);
+
+            bins[i].key_rest_cap = options->average_key_len;
+        }
+    }
+
+    return (void*)((uint8_t*)map + sizeof(Vd__StrmapHeader));
+}
+
+static uint64_t vd__strmap_bin_hash(void *map, Vd__StrmapBinPrefix *bin)
+{
+    uint32_t prefix_len = sizeof(bin->key_prefix);
+    if (bin->key_len <= prefix_len) {
+        return vd_dhash64(bin->key_prefix, bin->key_len);
+    }
+
+    VdArenaSave save = vd_arena_save(VD_STRMAP_ARENAP(map));
+    char *key = (char*)vd_arena_alloc(VD_STRMAP_ARENAP(map), bin->key_len);
+    VD_MEMCPY(key, bin->key_prefix, prefix_len);
+    VD_MEMCPY(key + prefix_len, bin->key_rest, bin->key_len - prefix_len);
+    uint64_t result = vd_dhash64(key, bin->key_len);
+    vd_arena_restore(save);
+    return result;
+}
+
+// Chains coalesce, so a later entry in the hole's chain may have its home at the hole, and lookups for it start
+// there. Fill the hole with the first such entry, which moves the hole to that entry's bin, until no later entry
+// homes at the hole; then unlink that bin. prev is the bin before the hole, if the search had to walk to it.
+static void vd__strmap_remove_bin(void *map, Vd__StrmapBinPrefix *prev, Vd__StrmapBinPrefix *hole)
+{
+    for (;;) {
+        uint64_t             hole_index = VD_STRMAP_GET_BIN_INDEX(map, hole);
+        Vd__StrmapBinPrefix *fill_prev  = hole;
+        Vd__StrmapBinPrefix *fill       = hole->next;
+        while (fill && (vd__strmap_bin_hash(map, fill) % VD_STRMAP_HEADER(map)->cap) != hole_index) {
+            fill_prev = fill;
+            fill      = fill->next;
+        }
+
+        if (fill == 0) {
+            break;
+        }
+
+        vd__strmap_emplace_key(map, hole, fill->key_prefix, fill->key_rest, fill->key_len);
+        VD_MEMCPY(VD_STRMAP_BIN_MOVE_TO_VPTR(hole), VD_STRMAP_BIN_MOVE_TO_VPTR(fill), VD_STRMAP_TSIZE(map));
+        hole->used = VD_TRUE;
+        prev       = fill_prev;
+        hole       = fill;
+    }
+
+    // Found at its own home bin, the hole can still be linked from another chain that coalesced into it.
+    for (uint32_t i = 0; (prev == 0) && (i < VD_STRMAP_HEADER(map)->cap_total); ++i) {
+        if (VD_STRMAP_GET_BIN(map, i)->next == hole) {
+            prev = VD_STRMAP_GET_BIN(map, i);
+        }
+    }
+
+    if (prev) {
+        prev->next = hole->next;
+    }
+    hole->used = VD_FALSE;
+    hole->next = 0;
+}
+
+Vd__StrmapBinPrefix* vd__strmap_get_bin(void *map, VdStr key, Vd__StrmapGetBinFlags op)
+{
+    // Get hash
+    uint64_t hash = vd_dhash64_str(key);
+    uint64_t bin_index = hash % VD_STRMAP_HEADER(map)->cap;
+
+    // Find existing bin if any
+    Vd__StrmapBinPrefix *existing_bin = VD_STRMAP_GET_BIN(map, bin_index);
+
+    // If:
+    // (existing_bin->used == 0) AND
+    //      - We don't need to create a new bin then we want to search anyway since we'll do an early
+    //        return after this if statement
+    //      - We do need to create a new bin then we stop here, because we found it
+    //
+    // (existing_bin->used == 1) AND
+    //      - We don't need to create a new bin, then go inside this statement to see if we can find
+    //        the bin matching the query
+    //      - We do need to create a new bin, then go inside anyway because at the end (meaning if
+    //        we actually find a place to allocate the bin), we'll want to link the collided bin chain
+    //        to the newly allocated bin
+    if (existing_bin->used || !(op & VD__STRMAP_GET_BIN_FLAGS_CREATE)) {
+        int found = VD_FALSE;
+        Vd__StrmapBinPrefix *prev = 0;
+
+        // Make sure that the hash didn't put us in a bin where the key is equal to the query key
+        if (existing_bin->used && vd__strmap_check_key(key, existing_bin)) {
+            found = VD_TRUE;
+        }
+
+        // If the bin isn't what we searched for, traverse the chain until the end to find it.
+        while (!found && (existing_bin->next != 0)) {
+            prev         = existing_bin;
+            existing_bin = existing_bin->next;
+
+            if (existing_bin->used && vd__strmap_check_key(key, existing_bin)) {
+                found = VD_TRUE;
+                break;
+            }
+        }
+
+        if (found) {
+            if (op & VD__STRMAP_GET_BIN_FLAGS_SET_UNUSED) {
+                VD_STRMAP_HEADER(map)->taken--;
+                vd__strmap_remove_bin(map, prev, existing_bin);
+                return existing_bin;
+
+            } else if (op & VD__STRMAP_GET_BIN_FLAGS_GET_EXISTING) {
+                // If the user wants to create a new bin, overwrite existing one, or just get it, and found is true, 
+                // this means that the user queried with an existing key. Return the existing bin in thie case.
+                if (existing_bin->used) {
+                    return existing_bin;
+                } else {
+                    return 0;
+                }
+            } else if (op & VD__STRMAP_GET_BIN_FLAGS_CREATE) {
+                // If the user wants to create a new bin, and found is true, this means that the user
+                // queried with the same key. Return null in this case.
+                return 0;
+            }
+        }
+    }
+
+    // At this point, no bin that matched our key was found so if the user doesn't want a new bin, then
+    // fail
+    if (!(op & VD__STRMAP_GET_BIN_FLAGS_CREATE)) {
+        return 0;
+    }
+
+    // If this bin is not used then allocate it
+    if (!existing_bin->used) {
+        vd__strmap_copy_key(map, key, existing_bin);
+        existing_bin->used = VD_TRUE;
+        existing_bin->next = 0;
+        VD_STRMAP_HEADER(map)->taken++;
+        return existing_bin;
+    }
+
+    // At this point, we handle a hash collision either for allocating a bin, or traversing the chain
+    // due to a previous collision
+
+    // Otherwise search starting from the cellar for an unused bin
+    uint32_t cursor = VD_STRMAP_HEADER(map)->cap_total;
+    while ((cursor > 0) && (VD_STRMAP_GET_BIN(map, cursor - 1)->used)) {
+        cursor--;
+    }
+
+    // After n iterations, if no bin was found we should be at a bin that's still used
+    // (i.e bin 0). In this case, return null.
+    if (cursor == 0) {
+        return 0;
+    }
+
+    cursor--;
+    Vd__StrmapBinPrefix *new_bin = VD_STRMAP_GET_BIN(map, cursor);
+
+    // Allocate the bin
+    new_bin->used = VD_TRUE;
+    new_bin->next = 0;
+
+    VD_STRMAP_HEADER(map)->taken++;
+
+    // Mark bin as next. At this point, the previous search through the chain means that existing_bin
+    // is now at the end of the chain 
+    existing_bin->next = new_bin;
+
+    // Copy new key and return
+    vd__strmap_copy_key(map, key, new_bin);
+    return new_bin;
+}
+
+/* ----KVMAP IMPL---------------------------------------------------------------------------------------------------- */
+static int vd__kvmap_check_key(size_t ksize, void *check, Vd__KVMapBinPrefix *against)
+{
+    void *key_against = (void *)(((uint8_t*)against) + sizeof(Vd__KVMapBinPrefix));
+    return VD_MEMCMP(check, key_against, ksize) == 0;
+}
+
+static void vd__kvmap_copy_key(void *map, void *key, Vd__KVMapBinPrefix *bin)
+{
+    void *dst = (void *)(((uint8_t*)bin) + sizeof(Vd__KVMapBinPrefix));
+    VD_MEMCPY(dst, key, VD_KVMAP_KSIZE(map));
+}
+
+// Chains coalesce, so a later entry in the hole's chain may have its home at the hole, and lookups for it start
+// there. Fill the hole with the first such entry, which moves the hole to that entry's bin, until no later entry
+// homes at the hole; then unlink that bin. prev is the bin before the hole, if the search had to walk to it.
+static void vd__kvmap_remove_bin(void *map, Vd__KVMapBinPrefix *prev, Vd__KVMapBinPrefix *hole)
+{
+    uint32_t ksize = VD_KVMAP_KSIZE(map);
+
+    for (;;) {
+        uint64_t            hole_index = VD_KVMAP_GET_BIN_INDEX(map, hole);
+        Vd__KVMapBinPrefix *fill_prev  = hole;
+        Vd__KVMapBinPrefix *fill       = hole->next;
+        while (fill && (vd_dhash64(VD_KVMAP_BIN_MOVE_TO_KPTR(fill), ksize) % VD_KVMAP_HEADER(map)->cap) != hole_index) {
+            fill_prev = fill;
+            fill      = fill->next;
+        }
+
+        if (fill == 0) {
+            break;
+        }
+
+        VD_MEMCPY(VD_KVMAP_BIN_MOVE_TO_KPTR(hole), VD_KVMAP_BIN_MOVE_TO_KPTR(fill), ksize + VD_KVMAP_VSIZE(map));
+        hole->used = VD_TRUE;
+        prev       = fill_prev;
+        hole       = fill;
+    }
+
+    // Found at its own home bin, the hole can still be linked from another chain that coalesced into it.
+    for (uint32_t i = 0; (prev == 0) && (i < VD_KVMAP_HEADER(map)->cap_total); ++i) {
+        if (VD_KVMAP_GET_BIN(map, i)->next == hole) {
+            prev = VD_KVMAP_GET_BIN(map, i);
+        }
+    }
+
+    if (prev) {
+        prev->next = hole->next;
+    }
+    hole->used = VD_FALSE;
+    hole->next = 0;
+}
+
+void *vd__kvmap_init(VdArena *arena, uint32_t ksize, uint32_t vsize, uint32_t cap, VdKVMapInitOptions *options)
+{
+    Vd__KVMapHeader *map;
+    const uint32_t bin_size = sizeof(Vd__KVMapBinPrefix) + ksize + vsize;    
+
+    map = (Vd__KVMapHeader*)vd_arena_alloc(arena, sizeof(Vd__KVMapHeader) + bin_size * cap);
+    float address_scale = 0.863f;
+    if (options != 0) address_scale = options->address_scale;
+
+    map->cap_total    = cap;
+    map->cap          = (uint32_t) (((float)cap) * address_scale);
+    map->taken        = 0;
+    map->ksize        = ksize;
+    map->vsize        = vsize;
+
+    return (void*)(((uint8_t*)map) + sizeof(Vd__KVMapHeader));
+}
+
+Vd__KVMapBinPrefix *vd__kvmap_get_bin(void *map, void *key, Vd__KVMapGetBinFlags op)
+{
+    // Get hash
+    uint64_t hash = vd_dhash64(key, VD_KVMAP_KSIZE(map));
+    uint64_t bin_index = hash % VD_KVMAP_HEADER(map)->cap;
+
+    // Find existing bin if any
+    Vd__KVMapBinPrefix *existing_bin = VD_KVMAP_GET_BIN(map, bin_index);
+
+    // If:
+    // (existing_bin->used == 0) AND
+    //      - We don't need to create a new bin then we want to search anyway since we'll do an early
+    //        return after this if statement
+    //      - We do need to create a new bin then we stop here, because we found it
+    //
+    // (existing_bin->used == 1) AND
+    //      - We don't need to create a new bin, then go inside this statement to see if we can find
+    //        the bin matching the query
+    //      - We do need to create a new bin, then go inside anyway because at the end (meaning if
+    //        we actually find a place to allocate the bin), we'll want to link the collided bin chain
+    //        to the newly allocated bin
+    if (existing_bin->used || !(op & VD__KVMAP_GET_BIN_FLAGS_CREATE)) {
+        int found = VD_FALSE;
+        Vd__KVMapBinPrefix *prev = 0;
+
+        // Make sure that the hash didn't put us in a bin where the key is equal to the query key
+        if (existing_bin->used && vd__kvmap_check_key(VD_KVMAP_KSIZE(map), key, existing_bin)) {
+            found = VD_TRUE;
+        }
+
+        // If the bin isn't what we searched for, traverse the chain until the end to find it.
+        while (!found && (existing_bin->next != 0)) {
+            prev         = existing_bin;
+            existing_bin = existing_bin->next;
+
+            if (existing_bin->used && vd__kvmap_check_key(VD_KVMAP_KSIZE(map), key, existing_bin)) {
+                found = VD_TRUE;
+                break;
+            }
+        }
+
+        if (found) {
+            if (op & VD__KVMAP_GET_BIN_FLAGS_SET_UNUSED) {
+                VD_KVMAP_HEADER(map)->taken--;
+                vd__kvmap_remove_bin(map, prev, existing_bin);
+                return existing_bin;
+
+            } else if (op & VD__KVMAP_GET_BIN_FLAGS_GET_EXISTING) {
+                // If the user wants to create a new bin, overwrite existing one, or just get it, and found is true, 
+                // this means that the user queried with an existing key. Return the existing bin in thie case.
+                return existing_bin;
+            } else if (op & VD__KVMAP_GET_BIN_FLAGS_CREATE) {
+                // If the user wants to create a new bin, and found is true, this means that the user
+                // queried with the same key. Return null in this case.
+                return 0;
+            }
+        }
+    }
+
+    // At this point, no bin that matched our key was found so if the user doesn't want a new bin, then
+    // fail
+    if (!(op & VD__KVMAP_GET_BIN_FLAGS_CREATE)) {
+        return 0;
+    }
+
+    // If this bin is not used then allocate it
+    if (!existing_bin->used) {
+        vd__kvmap_copy_key(map, key, existing_bin);
+        existing_bin->used = VD_TRUE;
+        existing_bin->next = 0;
+        VD_KVMAP_HEADER(map)->taken++;
+        return existing_bin;
+    }
+
+    // At this point, we handle a hash collision either for allocating a bin, or traversing the chain
+    // due to a previous collision
+
+    // Otherwise search starting from the cellar for an unused bin
+    uint32_t cursor = VD_KVMAP_HEADER(map)->cap_total;
+    while ((cursor > 0) && (VD_KVMAP_GET_BIN(map, cursor - 1)->used)) {
+        cursor--;
+    }
+
+    // After n iterations, if no bin was found we should be at a bin that's still used
+    // (i.e bin 0). In this case, return null.
+    if (cursor == 0) {
+        return 0;
+    }
+
+    cursor--;
+    Vd__KVMapBinPrefix *new_bin = VD_KVMAP_GET_BIN(map, cursor);
+
+    // Allocate the bin
+    new_bin->used = VD_TRUE;
+    new_bin->next = 0;
+
+    VD_KVMAP_HEADER(map)->taken++;
+
+    // Mark bin as next. At this point, the previous search through the chain means that existing_bin
+    // is now at the end of the chain 
+    existing_bin->next = new_bin;
+
+    // Copy new key and return
+    vd__kvmap_copy_key(map, key, new_bin);
+    return new_bin;
+}
+
+/* ----FILESYSTEM IMPL----------------------------------------------------------------------------------------------- */
+#if VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+#if VD_PLATFORM_WINDOWS
+
+#pragma pack(push, 1)
+typedef struct Vd_FILETIME {
+    uint32_t dwLowDateTime;
+    uint32_t dwHighDateTime;
+} VdFILETIME;
+
+typedef struct {
+  uint32_t   dwFileAttributes;
+  VdFILETIME ftCreationTime;
+  VdFILETIME ftLastAccessTime;
+  VdFILETIME ftLastWriteTime;
+  uint32_t   nFileSizeHigh;
+  uint32_t   nFileSizeLow;
+  uint32_t   dwReserved0;
+  uint32_t   dwReserved1;
+  wchar_t    cFileName[260];
+  wchar_t    cAlternateFileName[14];
+  uint32_t   dwFileType; // Obsolete. Do not use.
+  uint32_t   dwCreatorType; // Obsolete. Do not use
+  uint16_t   wFinderFlags; // Obsolete. Do not use
+} VdWIN32_FIND_DATAW;
+#pragma pack(pop)
+
+#if VD_CPP
+extern "C" {
+#endif // VD_CPP
+
+#pragma comment(linker, "/alternatename:VdMultiByteToWideChar=MultiByteToWideChar")
+extern int VdMultiByteToWideChar(uint32_t CodePage, uint32_t dwFlags, const char *lpMultiByteStr, int cbMultiByte, wchar_t *lpWideCharStr, int cchWideChar);
+#pragma comment(linker, "/alternatename:VdWideCharToMultiByte=WideCharToMultiByte")
+extern int VdWideCharToMultiByte(uint32_t CodePage, uint32_t dwFlags, const wchar_t *lpWideCharStr, int cchWideChar, char *lpMultiByteStr, int cbMultiByte, char *lpDefaultChar, int *lpUsedDefaultChar);
+#pragma comment(linker, "/alternatename:VdFindFirstFileW=FindFirstFileW")
+extern void *VdFindFirstFileW(const wchar_t *lpFileName, VdWIN32_FIND_DATAW *lpFindFileData);
+#pragma comment(linker, "/alternatename:VdFindNextFileW=FindNextFileW")
+extern int VdFindNextFileW(void *hFindFile, VdWIN32_FIND_DATAW *lpFindFileData);
+#pragma comment(linker, "/alternatename:VdFindClose=FindClose")
+extern int VdFindClose(void *hFindFile);
+
+#if VD_CPP
+}
+#endif // VD_CPP
+
+static wchar_t Cached_Directory_Entry[1024];
+static char    Filename_Cache[256];
+
+VD_API int vd_directory_open(VdDirectory *directory, const char *path)
+{
+    directory->filename = vd_str_from_cstr((char*)path);
+    directory->windows_is_on_first_file = VD_TRUE;
+    directory->windows_is_on_directory  = VD_FALSE;
+    return 1;
+}
+
+VD_API int vd_directory_get_file(VdDirectory *directory, VdFile *file)
+{
+query_file:
+    VdWIN32_FIND_DATAW dataw;
+    int was_found = VD_FALSE;
+
+    if (directory->windows_is_on_first_file) {
+        uint32_t lenw = VdMultiByteToWideChar(
+            65001,
+            0x00000008,
+            (const char*)directory->filename.s, (uint32_t)directory->filename.len,
+            Cached_Directory_Entry,
+            VD_ARRAY_COUNT(Cached_Directory_Entry));
+
+        if (Cached_Directory_Entry[lenw -1] != L'/' && Cached_Directory_Entry[lenw -1] != L'\\') {
+            Cached_Directory_Entry[lenw++] = L'\\';
+        }
+
+        Cached_Directory_Entry[lenw++] = L'*';
+        Cached_Directory_Entry[lenw]   = 0;
+
+        directory->handle = VdFindFirstFileW(Cached_Directory_Entry, &dataw);
+
+        was_found = directory->handle != (void*)-1;
+        directory->windows_is_on_first_file = VD_FALSE;
+    } else {
+        was_found = VdFindNextFileW(directory->handle, &dataw);
+    }
+
+    if (!was_found) {
+        return VD_FALSE;
+    }
+
+    int num_bytes = VdWideCharToMultiByte(
+        65001,
+        0x00000080,
+        dataw.cFileName, -1,
+        Filename_Cache,
+        sizeof(Filename_Cache),
+        0, 0);
+
+    file->name.s = Filename_Cache;
+    file->name.len = num_bytes - 1;
+
+    if (vd_str_eq(file->name, VD_LIT(".")) || vd_str_eq(file->name, VD_LIT(".."))) {
+        goto query_file;
+    }
+
+    file->flags = 0;
+    if (dataw.dwFileAttributes & 0x00000010) {
+        file->flags |= VD_FILE_FLAG_DIRECTORY;
+    }
+
+    return VD_TRUE;
+}
+
+VD_API int vd_directory_close(VdDirectory *directory)
+{
+    VdFindClose(directory->handle);    
+    return 1;
+}
+
+#elif VD_PLATFORM_LINUX || VD_PLATFORM_MACOS
+#include <dirent.h>
+#include <sys/stat.h>
+
+VD_API int vd_directory_open(VdDirectory *directory, const char *path)
+{
+    DIR *dir = opendir(path);
+    directory->filename = vd_str_from_cstr((char*)path);
+    directory->handle = (void*)dir;
+    return 1;
+}
+
+VD_API int vd_directory_get_file(VdDirectory *directory, VdFile *file)
+{
+    DIR *dir;
+    struct dirent *read_result;
+
+query_file:
+    dir = (DIR*)directory->handle;
+
+    read_result = readdir(dir);
+    if (!read_result) {
+        return 0;
+    }
+
+    file->name = vd_str_from_cstr(read_result->d_name);
+
+    if (vd_str_eq(file->name, VD_LIT(".")) || vd_str_eq(file->name, VD_LIT(".."))) {
+        goto query_file;
+    }
+
+
+    struct stat stat_struct;
+    stat(read_result->d_name, &stat_struct);    
+
+    file->flags = 0;
+    if (S_ISDIR(stat_struct.st_mode)) {
+        file->flags |= VD_FILE_FLAG_DIRECTORY;
+    }
+
+    return 1;
+}
+
+VD_API int vd_directory_close(VdDirectory *directory)
+{
+    DIR *dir = (DIR*)directory->handle;
+    closedir(dir);
+    return 1;
+}
+
+
+#else
+#error "Filesystem implementation not available on this platform"
+#endif // VD_PLATFORM_WINDOWS, else
+
+static void vd_directory__iter_recursive(VdDirectory *directory, char *buf, int buf_len,
+                                         int length_to_searched_directory,
+                                         void (*visit)(VdFile*, void*),
+                                         void *userdata)
+{
+    VdFile file;
+    while (vd_directory_get_file(directory, &file)) {
+
+        if (file.flags & VD_FILE_FLAG_DIRECTORY) {
+            // Construct Path
+            VD_MEMCPY(buf + buf_len, file.name.s, file.name.len);
+            int new_buf_len = buf_len + (int)file.name.len;
+            buf[new_buf_len++] = '/';
+            buf[new_buf_len] = 0;
+
+            VdDirectory new_directory;
+            if (vd_directory_open(&new_directory, buf)) {
+                vd_directory__iter_recursive(&new_directory, buf, new_buf_len, length_to_searched_directory,
+                                             visit, userdata);
+            }
+        } else {
+
+            // Append file.name into buf and call visit
+            VD_MEMCPY(buf + buf_len, file.name.s, file.name.len);
+
+            file.name.s = buf + length_to_searched_directory;
+            file.name.len = file.name.len + buf_len - length_to_searched_directory;
+            visit(&file, userdata);
+        }
+    }
+
+    vd_directory_close(directory);
+}
+
+VD_API void vd_directory_walk_recursively(const char *path, void (*visit)(VdFile*, void*), void *userdata)
+{
+    char buf[256] = {0};
+    int buf_len = 0;
+
+    buf_len = (int)vd_cstr_len((char*)path);
+    VD_MEMCPY(buf, path, buf_len);
+
+    if (buf[buf_len - 1] != '\\' && buf[buf_len - 1] != '/') {
+        buf[buf_len++] = '/';
+    }
+
+    VdDirectory first_directory;
+    if (!vd_directory_open(&first_directory, path)) {
+        return;
+    }
+
+    VdFile file;
+    while (vd_directory_get_file(&first_directory, &file)) {
+
+        if (file.flags & VD_FILE_FLAG_DIRECTORY) {
+            VD_MEMCPY(buf + buf_len, file.name.s, file.name.len);
+            int new_buf_len = buf_len + (int)file.name.len;
+            buf[new_buf_len++] = '/';
+            buf[new_buf_len] = 0;
+
+            VdDirectory new_directory;
+            if (vd_directory_open(&new_directory, buf)) {
+                vd_directory__iter_recursive(&new_directory, buf, new_buf_len, buf_len, visit, userdata);
+            }
+            continue;
+        }
+
+        visit(&file, userdata);
+    }
+
+    vd_directory_close(&first_directory);
+}
+#endif // VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+
+/* ----DYNAMIC LIBRARIES IMPL---------------------------------------------------------------------------------------- */
+#if VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+
+#if VD_CPP
+extern "C" {
+#endif // VD_CPP
+
+#pragma comment(linker, "/alternatename:VdLoadLibraryA=LoadLibraryA")
+extern void *VdLoadLibraryA(const char *path);
+#pragma comment(linker, "/alternatename:VdGetProcAddress=GetProcAddress")
+extern void *VdGetProcAddress(void *hModule, const char *lpProcName);
+#pragma comment(linker, "/alternatename:VdFreeLibrary=FreeLibrary")
+extern int VdFreeLibrary(void *hLibModule);
+
+#if VD_CPP
+}
+#endif // VD_CPP
+
+#if VD_PLATFORM_WINDOWS
+VD_API VdLibrary vd_library_from_path(const char *path)
+{
+    void *h = VdLoadLibraryA(path);
+    VdLibrary result;
+    result.handle = h;
+    return result;
+}
+
+VD_API void *vd_library_address(VdLibrary library, const char *name)
+{
+    void *h = library.handle;
+    return VdGetProcAddress(h, name);
+}
+
+VD_API void vd_library_free(VdLibrary library)
+{
+    void *h = library.handle;
+    VdFreeLibrary(h);
+}
+#else
+#error "No Shared Library implementation for this platform!"
+#endif // VD_PLATFORM_WINDOWS
+#endif // VD_INCLUDE_PLATFORM_SPECIFIC_FUNCTIONALITY
+
+/* ----TESTING IMPL-------------------------------------------------------------------------------------------------- */
+#if VD_INCLUDE_TESTS
+
+static int vd__run_test(VdTestEntry* e) {
+    vd_arena_clear(Test_Arena);
+    Test_Arena->flags = 0;
+
+    if (!e || !e->name || !e->test) return -1;
+
+    VdTestResult r = e->test();
+    if (r.ok) {
+        VD_TEST_LOG("[%-60s]   OK", e->name);
+        return 1;
+    } else {
+        VD_TEST_LOG("[%-60s]   FAILED", e->name);
+        VD_TEST_LOG("%s", r.err);
+        return 0;
+    }
+}
+
+VdArena *Test_Arena;
+
+#if !VD_HOST_COMPILER_UNKNOWN
+
+VdTestContext *Vd__Global_Test_Context = 0;
+VdTestEntry   *Vd__Test_Entries;
+size_t        Vd__Cap_Test_Entries;
+uint32_t          Vd__Len_Test_Entries;
+#endif // VD_HOST_COMPILER_UNKNOWN
+
+void vd_test_set_context(VdTestContext *context)
+{
+    Vd__Global_Test_Context = context;
+}
+
+void vd_test_get_tests(VdTestEntry **out_entries, uint32_t *out_num_entries)
+{
+    *out_entries = Vd__Test_Entries;
+    *out_num_entries = Vd__Len_Test_Entries;
+}
+
+#if VD_USE_CRT
+static VD_PROC_LOG(vd__test_log) {
+    VD_UNUSED(verbosity);
+    fputs(string, stdout);
+}
+
+#include <stdio.h>
+#endif // VD_USE_CRT
+
+void vd_test_main(void)
+{
+    VdArena a;
+    Test_Arena = &a;
+
+#if VD_USE_CRT
+    VdTestContext context;
+    context.log_impl = vd__test_log;
+
+    if (Vd__Global_Test_Context == 0) {
+        vd_test_set_context(&context);
+    }
+#endif // VD_USE_CRT
+
+    VD_ARENA_FROM_SYSTEM(Test_Arena, MEGABYTES(64));
+
+    int passed = 0, total = 0;
+#if !VD_HOST_COMPILER_UNKNOWN 
+    for (size_t i = 0; i < Vd__Len_Test_Entries; ++i) {
+        if (vd__run_test(&Vd__Test_Entries[i])) {
+            passed++;
+        }
+        total++;
+    }
+
+    VD_TEST_LOG("[%d/%d]\n", passed, total);
+#else
+#error "Cannot produce tests for unknown compiler!"
+#endif // !VD_HOST_COMPILER_UNKNOWN
+}
+#endif // VD_INCLUDE_TESTS
+#endif // VD_IMPL

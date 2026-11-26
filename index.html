@@ -17,20 +17,21 @@
 
     <!-- Menu -->
     <div id="info">
-        <div class="flx-grow-1" style="display: flex; flex-direction: column; align-items: end; margin-right: 12px;">
+        <div class="flx-grow-1 hero-text">
             <div id="bar1"></div>
-            <div style="font-size:2.2em; color: white; margin-bottom: 20px;">
+            <div class="hero-name">
                 Michael Dodis
             </div>
             <div id="menu">
                 <a class="menu-item" href="#about">About</a>
-                <a class="menu-item" href="#career-history">Career History</a>
+                <a class="menu-item" href="#career-history">Career</a>
                 <a class="menu-item" href="#software">Software</a>
+                <a class="menu-item" href="blog/index.html">Blog</a>
                 <a class="menu-item" href="#contact">Contact</a>
             </div>
         </div>
-        <div style="display: flex; justify-content: start;">
-            <img src="res/portrait_sized.jpg" style="height: 100%; object-fit: contain;">
+        <div class="hero-portrait">
+            <img src="res/portrait_sized.jpg" alt="Portrait of Michael Dodis">
         </div>
     </div>
 
@@ -248,6 +249,14 @@
                 </ul>
             </div>
 
+            <div data-time="t2020">
+                <ul>
+                    <li>Cubic Spline Editor in Unity C# (that was before they added their own ones)</li>
+                    <li>Some Modelling in Maya</li>
+                    <li>Modelled and built a 3D meal-plan UI widget for patients undergoing surgery in VR</li>
+                </ul>
+            </div>
+
             <div data-time="t2019">
                 <ul>
                     <li>Contributed optimizations for an NLP parser</li>
@@ -267,6 +276,7 @@
             <li data-time="t2023"><span class="timeline-date">2023</span>Computer Science Bsc. - University of Crete</li>
             <li data-time="t2022"><span class="timeline-date">2022</span>Core SDK Developer - ORamaVR SA</li>
             <li data-time="t2021"><span class="timeline-date">2021</span>SDK Developer - ORamaVR SA</li>
+            <li data-time="t2020"><span class="timeline-date">2020</span>Internship - ORamaVR SA</li>
             <li data-time="t2019"><span class="timeline-date">2019</span>Undergraduate Research - ICS FORTH</li>
             <li data-time="t2017"><span class="timeline-date">2017</span>Undergraduate</li>
         </ol>
@@ -352,21 +362,16 @@
     </div>
 
     <!-- Contact -->
-    <div class="section-header" id="contact">Contact</div>
+    <div class="section-header" id="contact">Find Me</div>
     <div class="cont" style="display: flex; justify-content: center;">
         <div class="section" aria-label="Information">
-            <form class="contact-form" action="#" method="POST">
-                <label for="contact-name">Name</label>
-                <input id="contact-name" name="name" type="text" required>
-
-                <label for="contact-email">Email</label>
-                <input id="contact-email" name="email" type="email" required>
-
-                <label for="contact-message">Message</label>
-                <textarea id="contact-message" name="message" rows="6" required></textarea>
-
-                <button type="submit">Send</button>
-            </form>
+            <nav class="social-links" aria-label="Social media">
+                <!-- TODO: set LinkedIn and Twitter profile URLs -->
+                <a href="https://www.linkedin.com/in/michael-dodis-1557141b3" target="_blank" rel="noopener">LinkedIn</a>
+                <a href="https://x.com/mdodis_t" target="_blank" rel="noopener">Twitter/X</a>
+                <a href="https://github.com/mdodis" target="_blank" rel="noopener">Github</a>
+                <a href="mailto:michaeldodisgr@gmail.com" target="_blank" rel="noopener">e-mail &lt;michaeldodisgr@gmail.com&gt;</a>
+            </nav>
         </div>
     </div>
 </body>

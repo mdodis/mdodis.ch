@@ -1,0 +1,112 @@
+@title("How this blog works")
+@category("post")
+@date("2026-11-26")
+
+@section("Preface") {
+    para {
+        I've messed around with many static site generators, specifically the ones that use markdown. I don't really like that. I have some issues with the markdown syntax. Namely that it's not easy to nest sections and have it generate nice table of contents, without having to arithmetize each one.
+    }
+
+    verb```
+# Title
+## Header 1
+### Header 2
+## Header 3
+### Header 5
+## Header 6
+### Header 7 Oops counted wrong!
+    ```
+
+    para {
+        Not nice. That plus now you have custom syntax to insert html into it... bleh! I wanted a syntax more like what I use daily:
+    }
+
+    verb```
+@section("Header 1") {
+    Some text
+
+    @section("Header 1.1") {
+        More text
+    }
+
+    @section("Header 1.2") {
+        ...
+    }
+}
+    ```
+
+    para {
+        I think it's obvious how embedding the nested nature of a document right into it makes writing and moving paragraphs much more intuitive.
+    }
+
+    para {
+        So, I came up with this syntax:
+    }
+
+    verb ```
+@tag("main name" attr1="value1" attr2="value2") {
+    text {
+        This is a naked text element. It can be added to lists, tables etc. without any parahgraph formatting.
+    }
+
+    para {
+        This is a paragraph element. It's used to add paragraphs. For both this and text, using _italics_ 
+        and other such things actually produces formatted text.
+    }
+
+    verb ` ` `
+        This is a verbatim element. There is no word-wrap here, it's mainly for code. 
+    ` ` `
+}
+    ```
+
+    para {
+        So with this syntax, it's now natural to insert html elements inline if you want, and it's very easy to add custom elements depending on what you need for your document. For example, if i want to add a copyright element, i can just do:
+    }
+
+    verb```
+@copyright()
+    ```
+
+    @copyright()
+}
+
+@section("How It's Made") {
+    para {
+        Because the syntax is so simple to parse, I just wrote the parser in C, as well as the html generator, which just uses some basic directory walking and templates.
+    }
+
+    para {
+        The parser is 1,500 lines of code, including comments and the typical C boilerplate. The builder code is around 2,000 lines of code, it's small and simple to update and extend to add whatever sort of features one would want.
+    }
+
+    para {
+        And because these files are just C files with only maybe a libc dependency, the build script that runs online can just be:
+    }
+
+    verb ```
+cc docubuild2.c -o docubuild2 && ./docubuild2 <my files> --<my options>
+    ```
+
+    para {
+        And now adding in any custom html I want is easy and intuitive:
+    }
+
+    verb ```
+@div(style="border: 1px solid red") {
+    text {
+        This is a div.
+    }
+}
+    ```
+
+    @div(style="border: 1px solid red") {
+        text {
+            This is a div.
+        }
+    }
+
+    para {
+        _Neat_, huh?
+    }
+}
